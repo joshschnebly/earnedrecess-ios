@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Combine
 
 class RewardTimer: ObservableObject {
     @Published var remainingSeconds: Int = 0
