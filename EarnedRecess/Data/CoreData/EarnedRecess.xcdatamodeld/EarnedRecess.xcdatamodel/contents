@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22A380" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="NO" userDefinedModelVersionIdentifier="">
-    <entity name="ChildProfile" representedClassName="ChildProfile" syncable="YES">
+    <entity name="ChildProfile" representedClassName="ChildProfile" codeGenerationType="none" syncable="YES">
         <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" attributeType="String" defaultValueString=""/>
@@ -11,7 +11,7 @@
         <relationship name="letterSessions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LetterSession" inverseName="child" inverseEntity="LetterSession"/>
         <relationship name="rewardSessions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="RewardSession" inverseName="child" inverseEntity="RewardSession"/>
     </entity>
-    <entity name="DrawingAttempt" representedClassName="DrawingAttempt" syncable="YES">
+    <entity name="DrawingAttempt" representedClassName="DrawingAttempt" codeGenerationType="none" syncable="YES">
         <attribute name="attemptNumber" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="compositeScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
@@ -25,7 +25,7 @@
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="session" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="LetterSession" inverseName="attempts" inverseEntity="LetterSession"/>
     </entity>
-    <entity name="LetterSession" representedClassName="LetterSession" syncable="YES">
+    <entity name="LetterSession" representedClassName="LetterSession" codeGenerationType="none" syncable="YES">
         <attribute name="attemptsCompleted" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="attemptsRequired" attributeType="Integer 16" defaultValueString="10" usesScalarValueType="YES"/>
         <attribute name="averageScore" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -39,7 +39,7 @@
         <relationship name="attempts" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="DrawingAttempt" inverseName="session" inverseEntity="DrawingAttempt"/>
         <relationship name="child" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChildProfile" inverseName="letterSessions" inverseEntity="ChildProfile"/>
     </entity>
-    <entity name="ParentSettings" representedClassName="ParentSettings" syncable="YES">
+    <entity name="ParentSettings" representedClassName="ParentSettings" codeGenerationType="none" syncable="YES">
         <attribute name="activeLetters" attributeType="String" defaultValueString="A"/>
         <attribute name="allowSearch" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="attemptsPerSession" attributeType="Integer 16" defaultValueString="10" usesScalarValueType="YES"/>
@@ -54,7 +54,7 @@
         <attribute name="timerDurationMinutes" attributeType="Integer 32" defaultValueString="20" usesScalarValueType="YES"/>
         <attribute name="youtubeChannelWhitelist" attributeType="String" optional="YES"/>
     </entity>
-    <entity name="RewardSession" representedClassName="RewardSession" syncable="YES">
+    <entity name="RewardSession" representedClassName="RewardSession" codeGenerationType="none" syncable="YES">
         <attribute name="endTime" attributeType="Date" optional="YES" usesScalarValueType="NO"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="minutesEarned" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
