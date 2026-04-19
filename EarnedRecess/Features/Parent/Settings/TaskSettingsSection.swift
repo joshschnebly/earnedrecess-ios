@@ -8,7 +8,7 @@ struct TaskSettingsSection: View {
     private let allLowercase = (97...122).map { String(UnicodeScalar($0)!) }
     @State private var showUppercase = true
 
-    private var activeSet: [String] { Set(settings.activeLetterArray) }
+    private var activeSet: [String] { Array(Set(settings.activeLetterArray)) }
 
     var body: some View {
         Section {
