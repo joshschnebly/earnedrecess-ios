@@ -1,11 +1,30 @@
 import CoreData
 import Foundation
 
+@objc(ParentSettings)
+public class ParentSettings: NSManagedObject {}
+
 extension ParentSettings {
-    static func fetchRequest() -> NSFetchRequest<ParentSettings> {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<ParentSettings> {
         NSFetchRequest<ParentSettings>(entityName: "ParentSettings")
     }
 
+    @NSManaged public var id: UUID?
+    @NSManaged public var timerDurationMinutes: Int32
+    @NSManaged public var attemptsPerSession: Int16
+    @NSManaged public var passingThreshold: Double
+    @NSManaged public var progressionThreshold: Double
+    @NSManaged public var autoProgressionEnabled: Bool
+    @NSManaged public var qualityMultiplierEnabled: Bool
+    @NSManaged public var requireAllLetters: Bool
+    @NSManaged public var activeLetters: String
+    @NSManaged public var maxDailyMinutes: Int32
+    @NSManaged public var bedtimeHour: Int32
+    @NSManaged public var allowSearch: Bool
+    @NSManaged public var youtubeChannelWhitelist: String?
+}
+
+extension ParentSettings {
     static func createDefaults(context: NSManagedObjectContext) -> ParentSettings {
         let settings = ParentSettings(context: context)
         settings.id = UUID()
@@ -39,3 +58,5 @@ extension ParentSettings {
         Date().hour >= Int(bedtimeHour)
     }
 }
+
+extension ParentSettings: Identifiable {}

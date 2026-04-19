@@ -1,11 +1,29 @@
 import CoreData
 import Foundation
 
+@objc(DrawingAttempt)
+public class DrawingAttempt: NSManagedObject {}
+
 extension DrawingAttempt {
-    static func fetchRequest() -> NSFetchRequest<DrawingAttempt> {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<DrawingAttempt> {
         NSFetchRequest<DrawingAttempt>(entityName: "DrawingAttempt")
     }
 
+    @NSManaged public var id: UUID?
+    @NSManaged public var attemptNumber: Int16
+    @NSManaged public var letter: String?
+    @NSManaged public var overlapScore: Double
+    @NSManaged public var proportionScore: Double
+    @NSManaged public var strokeCountScore: Double
+    @NSManaged public var smoothnessScore: Double
+    @NSManaged public var compositeScore: Double
+    @NSManaged public var passed: Bool
+    @NSManaged public var inkData: Data?
+    @NSManaged public var timestamp: Date?
+    @NSManaged public var session: LetterSession?
+}
+
+extension DrawingAttempt {
     static func create(attemptNumber: Int,
                        letter: String,
                        overlapScore: Double,
@@ -33,7 +51,6 @@ extension DrawingAttempt {
         return attempt
     }
 
-    // 1–3 star rating for child display
     var starRating: Int {
         switch compositeScore {
         case 0.80...: return 3
@@ -42,3 +59,5 @@ extension DrawingAttempt {
         }
     }
 }
+
+extension DrawingAttempt: Identifiable {}

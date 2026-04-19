@@ -1,11 +1,25 @@
 import CoreData
 import Foundation
 
+@objc(RewardSession)
+public class RewardSession: NSManagedObject {}
+
 extension RewardSession {
-    static func fetchRequest() -> NSFetchRequest<RewardSession> {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<RewardSession> {
         NSFetchRequest<RewardSession>(entityName: "RewardSession")
     }
 
+    @NSManaged public var id: UUID?
+    @NSManaged public var startTime: Date
+    @NSManaged public var endTime: Date?
+    @NSManaged public var minutesWatched: Int32
+    @NSManaged public var minutesEarned: Int32
+    @NSManaged public var videoTitle: String?
+    @NSManaged public var videoId: String?
+    @NSManaged public var child: ChildProfile?
+}
+
+extension RewardSession {
     static func create(minutesEarned: Int,
                        child: ChildProfile,
                        context: NSManagedObjectContext) -> RewardSession {
@@ -30,3 +44,5 @@ extension RewardSession {
         return Int(end.timeIntervalSince(startTime) / 60)
     }
 }
+
+extension RewardSession: Identifiable {}
