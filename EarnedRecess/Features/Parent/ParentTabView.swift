@@ -5,6 +5,7 @@ struct ParentTabView: View {
     let onExitToChild: () -> Void
 
     @State private var selectedTab: Tab = .dashboard
+    @State private var showGuidedAccessAlert = false
 
     enum Tab { case dashboard, settings, exit }
 
@@ -35,7 +36,19 @@ struct ParentTabView: View {
         }
         .tint(.erBlue)
         .onChange(of: selectedTab) { tab in
-            if tab == .exit { confirmExit() }
+            if tab == .exit {
+                if !GuidedAccessService.isEnabled {
+                    showGuidedAccessAlert = true
+                } else {
+                    confirmExit()
+                }
+            }
+        }
+        .alert("Guided Access is Off", isPresented: $showGuidedAccessAlert) {
+            Button("Exit Anyway", role: .destructive) { confirmExit() }
+            Button("Cancel", role: .cancel) { selectedTab = .dashboard }
+        } message: {
+            Text("Guided Access is not active. Enable it before handing the device to your child.")
         }
     }
 

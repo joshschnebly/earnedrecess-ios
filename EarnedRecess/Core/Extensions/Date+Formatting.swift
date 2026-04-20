@@ -30,6 +30,12 @@ extension Date {
     var hour: Int {
         Calendar.current.component(.hour, from: self)
     }
+
+    var shortWeekday: String {
+        let f = DateFormatter()
+        f.dateFormat = "EEE"
+        return f.string(from: self)
+    }
 }
 
 extension Int {

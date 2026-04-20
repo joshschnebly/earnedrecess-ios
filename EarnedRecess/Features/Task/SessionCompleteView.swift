@@ -55,7 +55,10 @@ struct SessionCompleteView: View {
                     .allowsHitTesting(false)
             }
         }
-        .onAppear { runAnimationSequence() }
+        .onAppear {
+            runAnimationSequence()
+            SpeechService.shared.speak(passed ? "Great job!" : "Good try! Let's practice more.")
+        }
     }
 
     // MARK: - Sub-views

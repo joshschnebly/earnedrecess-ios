@@ -20,6 +20,7 @@ struct DrawingScore {
     let proportionScore: Double
     let strokeCountScore: Double
     let smoothnessScore: Double
+    let keyPointsScore: Double
     let compositeScore: Double
 
     /// 1–3 star rating for child display
@@ -35,6 +36,7 @@ struct DrawingScore {
 
     static var zero: DrawingScore {
         DrawingScore(overlapScore: 0, proportionScore: 0,
-                     strokeCountScore: 0, smoothnessScore: 0, compositeScore: 0)
+                     strokeCountScore: 0, smoothnessScore: 0,
+                     keyPointsScore: 0, compositeScore: 0)
     }
 }

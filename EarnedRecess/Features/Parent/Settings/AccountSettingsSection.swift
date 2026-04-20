@@ -1,5 +1,14 @@
 import SwiftUI
 import CoreData
+import UIKit
+
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
 
 struct AccountSettingsSection: View {
     @ObservedObject var child: ChildProfile
@@ -11,6 +20,8 @@ struct AccountSettingsSection: View {
     @State private var showChangePIN = false
     @State private var showResetConfirm = false
     @State private var showGuidedAccessGuide = false
+    @State private var showExportSheet = false
+    @State private var exportURL: URL? = nil
     @State private var changePINStage: ChangePINStage = .enterCurrent
     @State private var currentPINEntry = ""
     @State private var newPINEntry = ""
@@ -76,6 +87,20 @@ struct AccountSettingsSection: View {
             .foregroundColor(.erBlue)
             .sheet(isPresented: $showGuidedAccessGuide) {
                 GuidedAccessInstructionsView(onContinue: { showGuidedAccessGuide = false })
+            }
+
+            // Export data
+            Button(action: {
+                exportURL = generateCSV()
+                showExportSheet = exportURL != nil
+            }) {
+                Label("Export Data", systemImage: "square.and.arrow.up")
+            }
+            .foregroundColor(.erBlue)
+            .sheet(isPresented: $showExportSheet) {
+                if let url = exportURL {
+                    ActivityView(activityItems: [url])
+                }
             }
 
             // Reset all progress
@@ -191,5 +216,29 @@ struct AccountSettingsSection: View {
         newPINEntry = ""
         confirmPINEntry = ""
         pinError = nil
+    }
+
+    private func generateCSV() -> URL? {
+        let sessions = (child.sessions as? Set<LetterSession> ?? [])
+            .sorted { ($0.sessionDate ?? .distantPast) < ($1.sessionDate ?? .distantPast) }
+
+        let formatter = ISO8601DateFormatter()
+        var lines = ["date,letter,phase,passed,averageScore,starMinutesEarned"]
+        for s in sessions {
+            let date = s.sessionDate.map { formatter.string(from: $0) } ?? ""
+            let letter = s.letter ?? ""
+            let passed = s.passed ? "true" : "false"
+            lines.append("\(date),\(letter),\(s.phase),\(passed),\(s.averageScore),\(s.starMinutesEarned)")
+        }
+
+        let csv = lines.joined(separator: "\n")
+        let fileName = "\(child.name ?? "child")_sessions.csv"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try csv.write(to: url, atomically: true, encoding: .utf8)
+            return url
+        } catch {
+            return nil
+        }
     }
 }

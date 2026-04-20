@@ -19,7 +19,7 @@ struct SingleAttemptView: View {
     }
 
     private var hasEnoughStrokes: Bool {
-        drawing.strokes.count >= 1
+        drawing.strokes.count >= 2
     }
 
     var body: some View {
@@ -53,6 +53,7 @@ struct SingleAttemptView: View {
             }
         }
         .animation(.spring(response: 0.35), value: showScore)
+        .onAppear { SpeechService.shared.speak("Draw the letter \(letter)") }
     }
 
     // MARK: - Sub-views

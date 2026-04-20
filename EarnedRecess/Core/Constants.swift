@@ -37,10 +37,12 @@ enum Constants {
     }
 
     enum Scoring {
-        static let overlapWeight: Double = 0.40
-        static let proportionWeight: Double = 0.20
-        static let strokeCountWeight: Double = 0.20
-        static let smoothnessWeight: Double = 0.20
+        static let overlapWeight: Double = 0.35
+        static let proportionWeight: Double = 0.18
+        static let strokeCountWeight: Double = 0.18
+        static let smoothnessWeight: Double = 0.14
+        static let keyPointsWeight: Double = 0.15
         static let strokePenaltyPerExtra: Double = 0.33
+        static let keyPointToleranceRadius: Double = 15
     }
 }

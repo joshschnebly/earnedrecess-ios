@@ -140,30 +140,46 @@ struct LetterDetailPanel: View {
     let letterRepo: LetterRepository
 
     private var sessions: [LetterSession] { letterRepo.sessions(for: letter, child: child) }
-    private var chartData: [ScorePoint] {
-        sessions.prefix(15).reversed().enumerated().map {
-            ScorePoint(index: $0.offset + 1, score: $0.element.averageScore)
+
+    private var chartData: [DayScorePoint] {
+        let calendar = Calendar.current
+        let cutoff = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: Date()))!
+        return (0..<7).map { offset -> DayScorePoint in
+            let dayStart = calendar.date(byAdding: .day, value: offset, to: cutoff)!
+            let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart)!
+            let label = dayStart.shortWeekday
+            let daySessions = sessions.filter {
+                guard let d = $0.sessionDate else { return false }
+                return d >= dayStart && d < dayEnd
+            }
+            let avg: Double? = daySessions.isEmpty ? nil
+                : daySessions.map(\.averageScore).reduce(0, +) / Double(daySessions.count)
+            return DayScorePoint(label: label, score: avg)
         }
     }
 
+    private var hasData: Bool { chartData.contains { $0.score != nil } }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Letter \(letter) — History")
+            Text("Letter \(letter) — Last 7 Days")
                 .font(Theme.Fonts.parentHeadline())
 
-            if chartData.count >= 2 {
+            if hasData {
                 Chart(chartData) { point in
-                    LineMark(x: .value("Session", point.index),
-                             y: .value("Score", point.score))
-                        .foregroundStyle(Color.erBlue)
-                        .interpolationMethod(.catmullRom)
-                    AreaMark(x: .value("Session", point.index),
-                             y: .value("Score", point.score))
-                        .foregroundStyle(Color.erBlue.opacity(0.1))
-                        .interpolationMethod(.catmullRom)
-                    PointMark(x: .value("Session", point.index),
-                              y: .value("Score", point.score))
-                        .foregroundStyle(Color.erBlue)
+                    if let score = point.score {
+                        LineMark(x: .value("Day", point.label),
+                                 y: .value("Score", score))
+                            .foregroundStyle(Color.erBlue)
+                            .interpolationMethod(.catmullRom)
+                        AreaMark(x: .value("Day", point.label),
+                                 y: .value("Score", score))
+                            .foregroundStyle(Color.erBlue.opacity(0.1))
+                            .interpolationMethod(.catmullRom)
+                        PointMark(x: .value("Day", point.label),
+                                  y: .value("Score", score))
+                            .foregroundStyle(Color.erBlue)
+                    }
                 }
                 .chartYScale(domain: 0...1)
                 .chartYAxis {
@@ -174,7 +190,7 @@ struct LetterDetailPanel: View {
                 }
                 .frame(height: 140)
             } else {
-                Text("Need at least 2 sessions to show chart.")
+                Text("No sessions in the last 7 days.")
                     .font(Theme.Fonts.parentBody())
                     .foregroundColor(.secondary)
             }
@@ -206,8 +222,8 @@ struct LetterDetailPanel: View {
     }
 }
 
-struct ScorePoint: Identifiable {
+struct DayScorePoint: Identifiable {
     let id = UUID()
-    let index: Int
-    let score: Double
+    let label: String
+    let score: Double?
 }

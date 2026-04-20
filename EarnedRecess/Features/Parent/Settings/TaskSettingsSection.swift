@@ -104,6 +104,15 @@ struct TaskSettingsSection: View {
                 }
             }
 
+            // Require all letters
+            Toggle(
+                "Require all letters before watching",
+                isOn: Binding(
+                    get: { settings.requireAllLetters },
+                    set: { settings.requireAllLetters = $0; onSave() }
+                )
+            )
+
         } header: {
             Label("Task Settings", systemImage: "pencil")
         }

@@ -15,17 +15,20 @@ struct StrokeAnalyzer {
         let proportion  = calculateProportion(drawing: drawing, template: template, canvasSize: canvasSize)
         let strokeCount = calculateStrokeCount(drawing: drawing, template: template)
         let smoothness  = calculateSmoothness(drawing: drawing)
+        let keyPoints   = calculateKeyPointsCoverage(drawing: drawing, template: template, canvasSize: canvasSize)
 
         let composite = (overlap     * Constants.Scoring.overlapWeight) +
                         (proportion  * Constants.Scoring.proportionWeight) +
                         (strokeCount * Constants.Scoring.strokeCountWeight) +
-                        (smoothness  * Constants.Scoring.smoothnessWeight)
+                        (smoothness  * Constants.Scoring.smoothnessWeight) +
+                        (keyPoints   * Constants.Scoring.keyPointsWeight)
 
         return DrawingScore(
             overlapScore:      overlap,
             proportionScore:   proportion,
             strokeCountScore:  strokeCount,
             smoothnessScore:   smoothness,
+            keyPointsScore:    keyPoints,
             compositeScore:    min(1.0, composite)
         )
     }
@@ -151,6 +154,45 @@ struct StrokeAnalyzer {
         // avgVariance near 0 = perfectly smooth, near π = very jagged
         // Map to 0–1 score: variance of 0.3 rad (~17°) scores ~0.7
         return max(0.0, 1.0 - (avgVariance / 0.8))
+    }
+
+    // MARK: - Key Points Coverage (15%)
+    // For each normalized key point, check if any pixel within toleranceRadius is covered.
+
+    private func calculateKeyPointsCoverage(drawing: PKDrawing,
+                                            template: LetterTemplate,
+                                            canvasSize: CGSize) -> Double {
+        guard !template.keyPoints.isEmpty else { return 1.0 }
+
+        let bitmapSize = CGSize(width: 200, height: 250)
+        let drawingImage = drawing.image(from: CGRect(origin: .zero, size: canvasSize),
+                                         scale: UIScreen.main.scale)
+        guard let drawingBitmap = pixelData(from: drawingImage, size: bitmapSize) else { return 0 }
+
+        let width  = Int(bitmapSize.width)
+        let height = Int(bitmapSize.height)
+        let radius = Int(Constants.Scoring.keyPointToleranceRadius)
+        var hits = 0
+
+        for keyPoint in template.keyPoints {
+            let cx = Int(keyPoint.x * bitmapSize.width)
+            let cy = Int(keyPoint.y * bitmapSize.height)
+
+            var covered = false
+            outer: for dy in -radius...radius {
+                for dx in -radius...radius {
+                    guard dx * dx + dy * dy <= radius * radius else { continue }
+                    let px = cx + dx
+                    let py = cy + dy
+                    guard px >= 0, px < width, py >= 0, py < height else { continue }
+                    let alpha = drawingBitmap[(py * width + px) * 4 + 3]
+                    if alpha > 50 { covered = true; break outer }
+                }
+            }
+            if covered { hits += 1 }
+        }
+
+        return Double(hits) / Double(template.keyPoints.count)
     }
 
     // MARK: - Bitmap helper

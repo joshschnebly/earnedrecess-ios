@@ -12,6 +12,29 @@ struct ChildHomeView: View {
     private var hasStars: Bool { appState.starMinutesBalance > 0 }
     private var childName: String { appState.currentChild?.name ?? "Friend" }
 
+    private var allLettersPracticedToday: Bool {
+        guard let settings = appState.parentSettings,
+              let child = appState.currentChild else { return true }
+        let activeLetters = Set(settings.activeLetterArray)
+        guard !activeLetters.isEmpty else { return true }
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let request: NSFetchRequest<LetterSession> = LetterSession.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "child == %@ AND sessionDate >= %@",
+            child, startOfDay as NSDate
+        )
+        let sessions = (try? context.fetch(request)) ?? []
+        let practicedLetters = Set(sessions.map { $0.letter ?? "" })
+        return activeLetters.isSubset(of: practicedLetters)
+    }
+
+    private var watchButtonEnabled: Bool {
+        guard hasStars else { return false }
+        guard let settings = appState.parentSettings,
+              settings.requireAllLetters else { return true }
+        return allLettersPracticedToday
+    }
+
     var body: some View {
         ZStack {
             Color.erBackground.ignoresSafeArea()
@@ -47,12 +70,23 @@ struct ChildHomeView: View {
                         icon: "📺",
                         label: "Watch\nYouTube",
                         color: .erGreen,
-                        isEnabled: hasStars,
+                        isEnabled: watchButtonEnabled,
                         action: { navigateToReward = true }
                     )
                 }
                 .padding(.horizontal, Theme.Sizing.padding)
-                .padding(.bottom, 48)
+
+                if hasStars,
+                   let settings = appState.parentSettings,
+                   settings.requireAllLetters,
+                   !allLettersPracticedToday {
+                    Text("Practice all letters first!")
+                        .font(Theme.Fonts.childBody(18))
+                        .foregroundColor(.secondary)
+                        .padding(.top, 8)
+                }
+
+                Spacer().frame(height: 48)
             }
 
             // Hidden triple-tap trigger — top-right corner
@@ -91,7 +125,12 @@ struct ChildHomeView: View {
                 appState.refreshBalance()
             })
         }
-        .onAppear { appState.refreshBalance() }
+        .onAppear {
+            appState.refreshBalance()
+            if appState.starMinutesBalance > 0 {
+                SpeechService.shared.speak("You earned \(appState.starMinutesBalance) star minutes!")
+            }
+        }
     }
 }
 
