@@ -17,11 +17,16 @@ extension ParentSettings {
     @NSManaged public var autoProgressionEnabled: Bool
     @NSManaged public var qualityMultiplierEnabled: Bool
     @NSManaged public var requireAllLetters: Bool
+    @NSManaged public var letterCase: String
+    @NSManaged public var templateStyle: String
+    @NSManaged public var showAlignmentLines: Bool
     @NSManaged public var activeLetters: String
     @NSManaged public var maxDailyMinutes: Int32
     @NSManaged public var bedtimeHour: Int32
     @NSManaged public var allowSearch: Bool
+    @NSManaged public var writeToWatchThreshold: Double
     @NSManaged public var youtubeChannelWhitelist: String?
+    @NSManaged public var appMode: String
 }
 
 extension ParentSettings {
@@ -35,11 +40,16 @@ extension ParentSettings {
         settings.autoProgressionEnabled = true
         settings.qualityMultiplierEnabled = false
         settings.requireAllLetters = false
+        settings.letterCase = "uppercase"
+        settings.templateStyle = "solid"
+        settings.showAlignmentLines = false
         settings.activeLetters = "A"
         settings.maxDailyMinutes = Int32(Constants.App.defaultMaxDailyMinutes)
         settings.bedtimeHour = Int32(Constants.App.defaultBedtimeHour)
         settings.allowSearch = false
+        settings.writeToWatchThreshold = 0.50
         settings.youtubeChannelWhitelist = Constants.YouTube.featuredChannelIds.joined(separator: ",")
+        settings.appMode = "standard"
         try? context.save()
         return settings
     }

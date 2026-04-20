@@ -11,9 +11,15 @@ struct VideoBrowserView: View {
     @State private var searchQuery = ""
     @State private var selectedChannelId: String? = nil
     @State private var showSearch = false
+    @State private var pendingVideo: YouTubeVideo? = nil
 
     private var allowSearch: Bool {
         appState.parentSettings?.allowSearch ?? false
+    }
+
+    private var requiresWriteToWatch: Bool {
+        let mode = appState.parentSettings?.appMode ?? "standard"
+        return mode == "writeToWatch" || mode == "both"
     }
 
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
@@ -45,6 +51,19 @@ struct VideoBrowserView: View {
         }
         .background(Color.erBackground.ignoresSafeArea())
         .task { await loadVideos() }
+        .fullScreenCover(item: $pendingVideo) { video in
+            WriteToWatchView(
+                videoTitle: video.title,
+                onSuccess: {
+                    pendingVideo = nil
+                    onSelectVideo(video)
+                },
+                onCancel: {
+                    pendingVideo = nil
+                }
+            )
+            .environmentObject(appState)
+        }
     }
 
     // MARK: - Sub-views
@@ -119,7 +138,11 @@ struct VideoBrowserView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(videos) { video in
                     VideoThumbnailView(video: video) {
-                        onSelectVideo(video)
+                        if requiresWriteToWatch {
+                            pendingVideo = video
+                        } else {
+                            onSelectVideo(video)
+                        }
                     }
                 }
             }

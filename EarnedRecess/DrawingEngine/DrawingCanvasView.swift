@@ -6,15 +6,50 @@ struct DrawingCanvasView: UIViewRepresentable {
     let template: LetterTemplate
     var phase: Int = 1
     var isEnabled: Bool = true
+    var showAlignmentLines: Bool = false
+    var templateStyle: String = "solid"
     var onStrokeAdded: (() -> Void)? = nil
 
+    private var effectivePhase: Int {
+        switch templateStyle {
+        case "dotted": return 2
+        case "none": return 3
+        default: return phase
+        }
+    }
+
     private var backgroundImage: UIImage? {
-        switch phase {
+        switch effectivePhase {
         case 1: return template.templateImage
         case 2: return LetterTemplateLibrary.renderDottedTemplateImage(
                     letter: template.letter,
                     size: LetterTemplate.referenceSize)
         default: return nil
+        }
+    }
+
+    private func applyAlignmentLines(to canvas: PKCanvasView) {
+        canvas.subviews.filter { $0.tag == 998 }.forEach { $0.removeFromSuperview() }
+        guard showAlignmentLines else { return }
+        let lines: [(CGFloat, UIColor)] = [
+            (0.15, UIColor(Color.erBlue).withAlphaComponent(0.20)),
+            (0.50, UIColor(Color.erBlue).withAlphaComponent(0.30)),
+            (0.75, UIColor(Color.erBlue).withAlphaComponent(0.40)),
+            (0.90, UIColor(Color.erBlue).withAlphaComponent(0.20)),
+        ]
+        for (fraction, color) in lines {
+            let line = UIView()
+            line.tag = 998
+            line.backgroundColor = color
+            line.translatesAutoresizingMaskIntoConstraints = false
+            canvas.insertSubview(line, at: 0)
+            NSLayoutConstraint.activate([
+                line.leadingAnchor.constraint(equalTo: canvas.leadingAnchor),
+                line.trailingAnchor.constraint(equalTo: canvas.trailingAnchor),
+                line.heightAnchor.constraint(equalToConstant: 1),
+                line.topAnchor.constraint(equalTo: canvas.topAnchor,
+                                          constant: canvas.bounds.height * fraction),
+            ])
         }
     }
 
@@ -56,6 +91,8 @@ struct DrawingCanvasView: UIViewRepresentable {
         if let imageView = canvas.viewWithTag(999) as? UIImageView {
             imageView.image = backgroundImage
         }
+
+        applyAlignmentLines(to: canvas)
     }
 
     // MARK: - Coordinator

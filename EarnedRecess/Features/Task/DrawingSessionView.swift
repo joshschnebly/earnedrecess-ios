@@ -17,6 +17,15 @@ struct DrawingSessionView: View {
     @State private var completedSession: LetterSession? = nil
     @State private var sessionStartTime = Date()
 
+    private var effectiveLetter: String {
+        let lc = appState.parentSettings?.letterCase ?? "uppercase"
+        switch lc {
+        case "lowercase": return letter.lowercased()
+        case "both": return Bool.random() ? letter.uppercased() : letter.lowercased()
+        default: return letter.uppercased()
+        }
+    }
+
     private var phase: Int {
         appState.currentChild?.phase(for: letter) ?? 1
     }
@@ -42,7 +51,7 @@ struct DrawingSessionView: View {
                 ))
             } else {
                 SingleAttemptView(
-                    letter: letter,
+                    letter: effectiveLetter,
                     attemptNumber: currentAttempt,
                     totalAttempts: attemptsRequired,
                     phase: phase,

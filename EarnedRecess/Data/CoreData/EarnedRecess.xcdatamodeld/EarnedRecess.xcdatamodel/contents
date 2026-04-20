@@ -50,9 +50,14 @@
         <attribute name="passingThreshold" attributeType="Double" defaultValueString="0.6" usesScalarValueType="YES"/>
         <attribute name="progressionThreshold" attributeType="Double" defaultValueString="0.85" usesScalarValueType="YES"/>
         <attribute name="qualityMultiplierEnabled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="letterCase" attributeType="String" defaultValueString="uppercase"/>
         <attribute name="requireAllLetters" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="showAlignmentLines" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="templateStyle" attributeType="String" defaultValueString="solid"/>
         <attribute name="timerDurationMinutes" attributeType="Integer 32" defaultValueString="20" usesScalarValueType="YES"/>
+        <attribute name="writeToWatchThreshold" attributeType="Double" defaultValueString="0.5" usesScalarValueType="YES"/>
         <attribute name="youtubeChannelWhitelist" attributeType="String" optional="YES"/>
+        <attribute name="appMode" attributeType="String" defaultValueString="standard"/>
     </entity>
     <entity name="RewardSession" representedClassName="RewardSession" codeGenerationType="none" syncable="YES">
         <attribute name="endTime" attributeType="Date" optional="YES" usesScalarValueType="NO"/>

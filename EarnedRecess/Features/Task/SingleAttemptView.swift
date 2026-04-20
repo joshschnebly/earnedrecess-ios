@@ -8,6 +8,8 @@ struct SingleAttemptView: View {
     var phase: Int = 1
     let onComplete: (DrawingScore, Data?) -> Void
 
+    @EnvironmentObject var appState: AppState
+
     @State private var drawing = PKDrawing()
     @State private var showScore = false
     @State private var lastScore: DrawingScore = .zero
@@ -34,7 +36,9 @@ struct SingleAttemptView: View {
                         drawing: $drawing,
                         template: template,
                         phase: phase,
-                        isEnabled: !showScore
+                        isEnabled: !showScore,
+                        showAlignmentLines: appState.parentSettings?.showAlignmentLines ?? false,
+                        templateStyle: appState.parentSettings?.templateStyle ?? "solid"
                     )
                     .cornerRadius(16)
                     .padding(Theme.Sizing.smallPadding)

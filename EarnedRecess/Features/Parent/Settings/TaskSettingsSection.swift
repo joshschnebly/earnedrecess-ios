@@ -113,6 +113,41 @@ struct TaskSettingsSection: View {
                 )
             )
 
+            // Letter case
+            Picker(
+                "Letter Case",
+                selection: Binding(
+                    get: { settings.letterCase },
+                    set: { settings.letterCase = $0; onSave() }
+                )
+            ) {
+                Text("Uppercase").tag("uppercase")
+                Text("Lowercase").tag("lowercase")
+                Text("Both").tag("both")
+            }
+
+            // Template style
+            Picker(
+                "Template Style",
+                selection: Binding(
+                    get: { settings.templateStyle },
+                    set: { settings.templateStyle = $0; onSave() }
+                )
+            ) {
+                Text("Solid Fill").tag("solid")
+                Text("Dotted Outline").tag("dotted")
+                Text("None").tag("none")
+            }
+
+            // Alignment lines
+            Toggle(
+                "Show Alignment Lines",
+                isOn: Binding(
+                    get: { settings.showAlignmentLines },
+                    set: { settings.showAlignmentLines = $0; onSave() }
+                )
+            )
+
         } header: {
             Label("Task Settings", systemImage: "pencil")
         }

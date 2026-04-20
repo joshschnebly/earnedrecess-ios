@@ -8,8 +8,39 @@ struct RewardSettingsSection: View {
 
     @State private var showResetConfirm = false
 
+    private var appModeLabel: String {
+        switch settings.appMode {
+        case "writeToWatch": return "Write to Watch Only"
+        case "both": return "Practice, Earn & Write to Watch"
+        default: return "Practice & Earn Minutes"
+        }
+    }
+
+    private var appModeDescription: String {
+        switch settings.appMode {
+        case "writeToWatch": return "Child skips earning and writes a title to unlock any video directly."
+        case "both": return "Child earns minutes by practicing and must write a title before watching."
+        default: return "Child practices letters to earn Star Minutes, then spends them to watch."
+        }
+    }
+
     var body: some View {
         Section {
+            Picker("App Mode", selection: Binding(
+                get: { settings.appMode },
+                set: { settings.appMode = $0; onSave() }
+            )) {
+                Text("Practice & Earn Minutes").tag("standard")
+                Text("Write to Watch Only").tag("writeToWatch")
+                Text("Practice, Earn & Write to Watch").tag("both")
+            }
+            .pickerStyle(.menu)
+            .tint(.erBlue)
+
+            Text(appModeDescription)
+                .font(Theme.Fonts.parentCaption())
+                .foregroundColor(.secondary)
+
             // Star minutes per session
             Stepper(
                 "Star minutes per session: \(Int(settings.timerDurationMinutes))",

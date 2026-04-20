@@ -11,6 +11,7 @@ struct ChildHomeView: View {
 
     private var hasStars: Bool { appState.starMinutesBalance > 0 }
     private var childName: String { appState.currentChild?.name ?? "Friend" }
+    private var appMode: String { appState.parentSettings?.appMode ?? "standard" }
 
     private var allLettersPracticedToday: Bool {
         guard let settings = appState.parentSettings,
@@ -40,43 +41,66 @@ struct ChildHomeView: View {
             Color.erBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                StarWalletTopBar(balance: appState.starMinutesBalance)
+                if appMode != "writeToWatch" {
+                    StarWalletTopBar(balance: appState.starMinutesBalance)
+                }
 
                 Spacer()
 
                 VStack(spacing: 20) {
-                    MascotView(hasStars: hasStars)
+                    MascotView(hasStars: appMode == "writeToWatch" ? true : hasStars)
 
-                    Text(hasStars
-                         ? "You have \(appState.starMinutesBalance.asStarMinutesLabel)!"
-                         : "Draw letters to earn Star Minutes!")
-                        .font(Theme.Fonts.childBody(28))
-                        .foregroundColor(.primary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, Theme.Sizing.padding)
+                    if appMode == "writeToWatch" {
+                        Text("Pick a video to watch!")
+                            .font(Theme.Fonts.childBody(28))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, Theme.Sizing.padding)
+                    } else {
+                        Text(hasStars
+                             ? "You have \(appState.starMinutesBalance.asStarMinutesLabel)!"
+                             : "Draw letters to earn Star Minutes!")
+                            .font(Theme.Fonts.childBody(28))
+                            .foregroundColor(.primary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, Theme.Sizing.padding)
+                    }
                 }
 
                 Spacer()
 
                 HStack(spacing: 20) {
-                    ChildActionButton(
-                        icon: "🎨",
-                        label: "Draw\nLetters",
-                        color: .erBlue,
-                        isEnabled: true,
-                        action: { navigateToTask = true }
-                    )
-                    ChildActionButton(
-                        icon: "📺",
-                        label: "Watch\nYouTube",
-                        color: .erGreen,
-                        isEnabled: watchButtonEnabled,
-                        action: { navigateToReward = true }
-                    )
+                    if appMode != "writeToWatch" {
+                        ChildActionButton(
+                            icon: "🎨",
+                            label: "Draw\nLetters",
+                            color: .erBlue,
+                            isEnabled: true,
+                            action: { navigateToTask = true }
+                        )
+                    }
+                    if appMode == "writeToWatch" {
+                        ChildActionButton(
+                            icon: "📺",
+                            label: "Watch\nVideos",
+                            color: .erGreen,
+                            isEnabled: true,
+                            action: { navigateToReward = true }
+                        )
+                    } else {
+                        ChildActionButton(
+                            icon: "📺",
+                            label: "Watch\nYouTube",
+                            color: .erGreen,
+                            isEnabled: watchButtonEnabled,
+                            action: { navigateToReward = true }
+                        )
+                    }
                 }
                 .padding(.horizontal, Theme.Sizing.padding)
 
-                if hasStars,
+                if appMode != "writeToWatch",
+                   hasStars,
                    let settings = appState.parentSettings,
                    settings.requireAllLetters,
                    !allLettersPracticedToday {
