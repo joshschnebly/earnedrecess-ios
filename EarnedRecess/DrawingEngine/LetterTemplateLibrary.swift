@@ -126,6 +126,19 @@ enum LetterTemplateLibrary {
         }
     }
 
+    static func renderDottedTemplateImage(letter: String, size: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { ctx in
+            guard let path = renderGlyphPath(letter: letter, size: size) else { return }
+            let cgCtx = ctx.cgContext
+            cgCtx.addPath(path)
+            cgCtx.setLineWidth(6)
+            cgCtx.setLineDash(phase: 0, lengths: [12, 8])
+            cgCtx.setStrokeColor(UIColor.systemBlue.withAlphaComponent(0.45).cgColor)
+            cgCtx.strokePath()
+        }
+    }
+
     private static func renderGlyphPath(letter: String, size: CGSize) -> CGPath? {
         guard let scalar = letter.unicodeScalars.first else { return nil }
         let font = CTFontCreateWithName("Helvetica-Bold" as CFString, size.height * 0.80, nil)

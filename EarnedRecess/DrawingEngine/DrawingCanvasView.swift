@@ -4,8 +4,19 @@ import PencilKit
 struct DrawingCanvasView: UIViewRepresentable {
     @Binding var drawing: PKDrawing
     let template: LetterTemplate
+    var phase: Int = 1
     var isEnabled: Bool = true
     var onStrokeAdded: (() -> Void)? = nil
+
+    private var backgroundImage: UIImage? {
+        switch phase {
+        case 1: return template.templateImage
+        case 2: return LetterTemplateLibrary.renderDottedTemplateImage(
+                    letter: template.letter,
+                    size: LetterTemplate.referenceSize)
+        default: return nil
+        }
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -19,10 +30,9 @@ struct DrawingCanvasView: UIViewRepresentable {
         canvas.tool = PKInkingTool(.pen, color: .systemBlue, width: 8)
         canvas.delegate = context.coordinator
 
-        // Letter template as background image layer (behind canvas)
-        let templateImageView = UIImageView(image: template.templateImage)
+        let templateImageView = UIImageView(image: backgroundImage)
         templateImageView.contentMode = .scaleAspectFit
-        templateImageView.alpha = 0.25
+        templateImageView.alpha = 1.0
         templateImageView.translatesAutoresizingMaskIntoConstraints = false
         templateImageView.tag = 999
         canvas.insertSubview(templateImageView, at: 0)
@@ -39,14 +49,12 @@ struct DrawingCanvasView: UIViewRepresentable {
     func updateUIView(_ canvas: PKCanvasView, context: Context) {
         canvas.isUserInteractionEnabled = isEnabled
 
-        // Sync drawing if externally cleared
         if canvas.drawing.strokes.count != drawing.strokes.count {
             canvas.drawing = drawing
         }
 
-        // Update template image if letter changed
         if let imageView = canvas.viewWithTag(999) as? UIImageView {
-            imageView.image = template.templateImage
+            imageView.image = backgroundImage
         }
     }
 

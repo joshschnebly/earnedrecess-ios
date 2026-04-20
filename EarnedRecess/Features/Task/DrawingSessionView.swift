@@ -45,6 +45,7 @@ struct DrawingSessionView: View {
                     letter: letter,
                     attemptNumber: currentAttempt,
                     totalAttempts: attemptsRequired,
+                    phase: phase,
                     onComplete: handleAttemptComplete
                 )
                 .id(currentAttempt)  // force re-init for each attempt

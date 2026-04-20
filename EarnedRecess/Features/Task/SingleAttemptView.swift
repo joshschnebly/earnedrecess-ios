@@ -5,6 +5,7 @@ struct SingleAttemptView: View {
     let letter: String
     let attemptNumber: Int
     let totalAttempts: Int
+    var phase: Int = 1
     let onComplete: (DrawingScore, Data?) -> Void
 
     @State private var drawing = PKDrawing()
@@ -32,6 +33,7 @@ struct SingleAttemptView: View {
                     DrawingCanvasView(
                         drawing: $drawing,
                         template: template,
+                        phase: phase,
                         isEnabled: !showScore
                     )
                     .cornerRadius(16)
