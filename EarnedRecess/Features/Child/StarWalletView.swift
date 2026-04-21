@@ -9,8 +9,7 @@ struct StarWalletView: View {
 
     private let maxDisplayStars = 5
     private var starsFilled: Int {
-        // Visual star count: scale balance to 0–5 stars (every 20 min = 1 star, cap at 5)
-        min(maxDisplayStars, balance / 20 + (balance > 0 ? 1 : 0))
+        balance > 0 ? min(maxDisplayStars, max(1, balance / 20)) : 0
     }
 
     var body: some View {

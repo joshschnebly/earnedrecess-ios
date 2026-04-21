@@ -219,7 +219,7 @@ struct AccountSettingsSection: View {
     }
 
     private func generateCSV() -> URL? {
-        let sessions = (child.sessions as? Set<LetterSession> ?? [])
+        let sessions = (child.letterSessions as? Set<LetterSession> ?? [])
             .sorted { ($0.sessionDate ?? .distantPast) < ($1.sessionDate ?? .distantPast) }
 
         let formatter = ISO8601DateFormatter()
@@ -232,7 +232,7 @@ struct AccountSettingsSection: View {
         }
 
         let csv = lines.joined(separator: "\n")
-        let fileName = "\(child.name ?? "child")_sessions.csv"
+        let fileName = "\(child.name)_sessions.csv"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         do {
             try csv.write(to: url, atomically: true, encoding: .utf8)

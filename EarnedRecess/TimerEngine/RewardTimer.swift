@@ -18,6 +18,7 @@ final class RewardTimer: ObservableObject {
 
     func start(minutes: Int) {
         guard minutes > 0 else { return }
+        pause()
         totalSecondsAtStart = minutes * 60
         remainingSeconds = totalSecondsAtStart
         isExpired = false

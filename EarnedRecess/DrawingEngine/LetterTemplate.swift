@@ -15,7 +15,7 @@ struct LetterTemplate {
 
 // MARK: - Drawing Score
 
-struct DrawingScore {
+struct DrawingScore: Equatable {
     let overlapScore: Double
     let proportionScore: Double
     let strokeCountScore: Double

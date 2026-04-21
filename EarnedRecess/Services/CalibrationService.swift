@@ -1,13 +1,13 @@
 import CoreData
 import Foundation
 
-struct CalibrationSuggestion {
+struct CalibrationSuggestion: Equatable {
     let type: SuggestionType
     let message: String
     let suggestedPassingThreshold: Double?
     let suggestedProgressionThreshold: Double?
 
-    enum SuggestionType { case tooEasy, tooHard, onTrack }
+    enum SuggestionType: Equatable { case tooEasy, tooHard, onTrack }
 }
 
 final class CalibrationService {

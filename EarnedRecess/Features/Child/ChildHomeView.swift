@@ -140,10 +140,17 @@ struct ChildHomeView: View {
             ParentTabView(onExitToChild: { showParentModule = false })
         }
         .fullScreenCover(isPresented: $navigateToTask) {
-            TaskGateView(onDismiss: {
-                navigateToTask = false
-                appState.refreshBalance()
-            })
+            TaskGateView(
+                onDismiss: {
+                    navigateToTask = false
+                    appState.refreshBalance()
+                },
+                onWatchYouTube: {
+                    navigateToTask = false
+                    appState.refreshBalance()
+                    navigateToReward = true
+                }
+            )
         }
         .fullScreenCover(isPresented: $navigateToReward) {
             RewardPlayerView(onDismiss: {
@@ -158,7 +165,7 @@ struct ChildHomeView: View {
                 SpeechService.shared.speak("You earned \(appState.starMinutesBalance) star minutes!")
             }
         }
-        .onChange(of: appState.starMinutesBalance) { _ in
+        .onChange(of: appState.starMinutesBalance) { _, _ in
             allLettersPracticedToday = computeAllLettersPracticedToday()
         }
     }

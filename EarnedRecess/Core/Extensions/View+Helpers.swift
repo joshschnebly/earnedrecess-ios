@@ -27,7 +27,7 @@ struct ShakeModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .offset(x: offset)
-            .onChange(of: trigger) { _ in
+            .onChange(of: trigger) { _, _ in
                 withAnimation(.default) { offset = -10 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation(.default) { offset = 10 }

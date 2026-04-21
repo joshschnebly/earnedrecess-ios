@@ -68,8 +68,8 @@ struct LetterGridCard: View {
         scores.isEmpty ? 0 : scores.reduce(0, +) / Double(scores.count)
     }
     private var trend: String {
-        guard scores.count >= 2, let last = scores.last, let first = scores.first else { return "→" }
-        return last > first ? "↑" : last < first ? "↓" : "→"
+        guard scores.count >= 2, let newest = scores.first, let oldest = scores.last else { return "→" }
+        return newest > oldest ? "↑" : newest < oldest ? "↓" : "→"
     }
     private var trendColor: Color {
         trend == "↑" ? .erGreen : trend == "↓" ? .erRed : .secondary

@@ -10,6 +10,7 @@ struct PINEntryView: View {
     @State private var lockoutSeconds: Int = 0
     @State private var shakeTrigger: Bool = false
     @State private var errorMessage: String? = nil
+    @State private var lockoutTimer: Timer? = nil
 
     private var isLocked: Bool { isLockedOut && lockoutSeconds > 0 }
 
@@ -66,6 +67,10 @@ struct PINEntryView: View {
             }
         }
         .onAppear(perform: checkLockout)
+        .onDisappear {
+            lockoutTimer?.invalidate()
+            lockoutTimer = nil
+        }
     }
 
     // MARK: - Logic
@@ -120,7 +125,8 @@ struct PINEntryView: View {
     }
 
     private func startLockoutCountdown() {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
+        lockoutTimer?.invalidate()
+        lockoutTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { t in
             lockoutSeconds -= 1
             if lockoutSeconds <= 0 {
                 isLockedOut = false

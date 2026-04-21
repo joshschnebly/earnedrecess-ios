@@ -7,7 +7,7 @@ struct DrawingCanvasView: UIViewRepresentable {
     var phase: Int = 1
     var isEnabled: Bool = true
     var showAlignmentLines: Bool = false
-    var templateStyle: String = "solid"
+    var templateStyle: TemplateStyle = .solid
     var tracingArrowsEnabled: Bool = false
     var tracingArrowsContinuous: Bool = true
     var tracingArrowsSequential: Bool = false
@@ -15,8 +15,8 @@ struct DrawingCanvasView: UIViewRepresentable {
 
     private var effectivePhase: Int {
         switch templateStyle {
-        case "dotted": return 2
-        case "none": return 3
+        case .dotted: return 2
+        case .none: return 3
         default: return phase
         }
     }

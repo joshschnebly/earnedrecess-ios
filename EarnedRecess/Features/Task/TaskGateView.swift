@@ -1,13 +1,50 @@
 import SwiftUI
+import CoreData
 
 struct TaskGateView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.managedObjectContext) var context
     var onDismiss: () -> Void
+    var onWatchYouTube: (() -> Void)? = nil
 
     @State private var started = false
 
     private var letter: String {
-        appState.parentSettings?.activeLetterArray.first ?? "A"
+        guard let settings = appState.parentSettings,
+              let child = appState.currentChild else {
+            return appState.parentSettings?.activeLetterArray.first ?? "A"
+        }
+        let active = settings.activeLetterArray
+        guard !active.isEmpty else { return "A" }
+
+        let startOfDay = Calendar.current.startOfDay(for: Date())
+        let request: NSFetchRequest<LetterSession> = LetterSession.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "child == %@ AND sessionDate >= %@",
+            child, startOfDay as NSDate
+        )
+        let todaySessions = (try? context.fetch(request)) ?? []
+
+        let practicedToday = Set(todaySessions.map { $0.letter ?? "" })
+        let unpracticed = active.filter { !practicedToday.contains($0) }
+
+        if let first = unpracticed.first {
+            return first
+        }
+
+        // All practiced today — pick the one with the lowest averageScore today
+        let best = active.min { a, b in
+            let scoreA = todaySessions
+                .filter { $0.letter == a }
+                .map(\.averageScore)
+                .reduce(0, +)
+            let scoreB = todaySessions
+                .filter { $0.letter == b }
+                .map(\.averageScore)
+                .reduce(0, +)
+            return scoreA < scoreB
+        }
+        return best ?? active[0]
     }
     private var attemptsRequired: Int {
         Int(appState.parentSettings?.attemptsPerSession ?? 10)
@@ -27,7 +64,8 @@ struct TaskGateView: View {
                 DrawingSessionView(
                     letter: letter,
                     attemptsRequired: attemptsRequired,
-                    onDismiss: onDismiss
+                    onDismiss: onDismiss,
+                    onWatchYouTube: onWatchYouTube
                 )
             } else {
                 gateContent

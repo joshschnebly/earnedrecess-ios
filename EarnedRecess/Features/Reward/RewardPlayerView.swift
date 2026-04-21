@@ -10,6 +10,7 @@ struct RewardPlayerView: View {
     // Player state
     @State private var selectedVideo: YouTubeVideo? = nil
     @State private var isPlaying: Bool = false
+    @State private var playerReady: Bool = false
     @State private var showTimerExpired: Bool = false
     @State private var showTaskGate: Bool = false
 
@@ -31,8 +32,9 @@ struct RewardPlayerView: View {
                 // Video browser — pick a video first
                 VideoBrowserView(
                     onSelectVideo: { video in
+                        playerReady = false
                         selectedVideo = video
-                        startTimer()
+                        beginRewardSession()
                     },
                     onStop: endSession
                 )
@@ -44,6 +46,19 @@ struct RewardPlayerView: View {
                     onDrawMore: {
                         showTimerExpired = false
                         pauseEverything()
+                        if let session = rewardSession {
+                            let watched: Int
+                            if let child = appState.currentChild {
+                                watched = Int(child.totalStarMinutesSpent) - minutesWatchedAtStart
+                            } else {
+                                watched = 0
+                            }
+                            session.end(minutesWatched: watched,
+                                        videoTitle: selectedVideo?.title,
+                                        videoId: selectedVideo?.id)
+                            try? context.save()
+                            rewardSession = nil
+                        }
                         showTaskGate = true
                     },
                     onDoneForNow: endSession
@@ -57,7 +72,6 @@ struct RewardPlayerView: View {
             TaskGateView(onDismiss: {
                 showTaskGate = false
                 appState.refreshBalance()
-                // If child earned more stars, resume
                 if appState.starMinutesBalance > 0 {
                     startTimer()
                 } else {
@@ -65,7 +79,6 @@ struct RewardPlayerView: View {
                 }
             })
         }
-        .onAppear(perform: beginRewardSession)
         .onDisappear(perform: pauseEverything)
     }
 
@@ -80,9 +93,14 @@ struct RewardPlayerView: View {
             YouTubePlayerView(
                 videoId: video.id,
                 isPlaying: $isPlaying,
-                onPlayerReady: { isPlaying = true },
+                onPlayerReady: {
+                    isPlaying = true
+                    if !playerReady {
+                        playerReady = true
+                        startTimer()
+                    }
+                },
                 onVideoEnded: {
-                    // Video finished — go back to browser
                     selectedVideo = nil
                 }
             )
@@ -103,7 +121,8 @@ struct RewardPlayerView: View {
     // MARK: - Timer management
 
     private func startTimer() {
-        guard appState.starMinutesBalance > 0 else { endSession(); return }
+        let isWriteToWatch = appState.parentSettings?.appModeEnum == .writeToWatch
+        guard isWriteToWatch || appState.starMinutesBalance > 0 else { endSession(); return }
 
         timer.start(minutes: appState.starMinutesBalance)
         timer.onExpired = {

@@ -35,7 +35,7 @@ struct ParentTabView: View {
                 .tag(Tab.exit)
         }
         .tint(.erBlue)
-        .onChange(of: selectedTab) { tab in
+        .onChange(of: selectedTab) { _, tab in
             if tab == .exit {
                 if !GuidedAccessService.isEnabled {
                     showGuidedAccessAlert = true

@@ -9,6 +9,7 @@ final class StarMinutesService {
 
     // MARK: - Award
 
+    @discardableResult
     func award(minutes: Int, to child: ChildProfile, settings: ParentSettings, context: NSManagedObjectContext) -> Int {
         guard !settings.isBedtime else { return 0 }
 

@@ -39,7 +39,7 @@ struct SingleAttemptView: View {
                         phase: phase,
                         isEnabled: !showScore,
                         showAlignmentLines: appState.parentSettings?.showAlignmentLines ?? false,
-                        templateStyle: appState.parentSettings?.templateStyle ?? "solid",
+                        templateStyle: appState.parentSettings?.templateStyleEnum ?? .solid,
                         tracingArrowsEnabled: appState.parentSettings?.tracingArrowsEnabled ?? false,
                         tracingArrowsContinuous: appState.parentSettings?.tracingArrowsContinuous ?? true,
                         tracingArrowsSequential: appState.parentSettings?.tracingArrowsSequential ?? false

@@ -1,22 +1,32 @@
 import Foundation
 
 extension Date {
+    private static let shortDateFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateStyle = .short; return f
+    }()
+
+    private static let mediumDateFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateStyle = .medium; return f
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter(); f.timeStyle = .short; return f
+    }()
+
+    private static let shortWeekdayFormatter: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "EEE"; return f
+    }()
+
     var shortDate: String {
-        let f = DateFormatter()
-        f.dateStyle = .short
-        return f.string(from: self)
+        Date.shortDateFormatter.string(from: self)
     }
 
     var mediumDate: String {
-        let f = DateFormatter()
-        f.dateStyle = .medium
-        return f.string(from: self)
+        Date.mediumDateFormatter.string(from: self)
     }
 
     var timeString: String {
-        let f = DateFormatter()
-        f.timeStyle = .short
-        return f.string(from: self)
+        Date.timeFormatter.string(from: self)
     }
 
     var isToday: Bool {
@@ -32,9 +42,7 @@ extension Date {
     }
 
     var shortWeekday: String {
-        let f = DateFormatter()
-        f.dateFormat = "EEE"
-        return f.string(from: self)
+        Date.shortWeekdayFormatter.string(from: self)
     }
 }
 

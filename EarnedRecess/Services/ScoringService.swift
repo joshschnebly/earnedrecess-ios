@@ -58,8 +58,8 @@ final class ScoringService {
             )
         }
 
-        // Award star minutes if passed
-        if passed {
+        // Award star minutes if passed and not bedtime
+        if passed && !settings.isBedtime {
             let award = progression.starMinutesAwarded(
                 averageScore: avgScore,
                 baseDuration: Int(settings.timerDurationMinutes),
@@ -94,13 +94,5 @@ final class ScoringService {
             print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
         }
         return session
-    }
-}
-
-// MARK: - Safe subscript
-
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
     }
 }

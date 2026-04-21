@@ -1,6 +1,6 @@
 import CoreData
 
-class CoreDataStack {
+final class CoreDataStack {
     static let shared = CoreDataStack()
 
     let container: NSPersistentContainer
@@ -24,6 +24,7 @@ class CoreDataStack {
                 }
             }
         }
+        container.viewContext.shouldDeleteInaccessibleFaults = true
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }

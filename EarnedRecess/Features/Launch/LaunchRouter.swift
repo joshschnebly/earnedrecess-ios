@@ -9,10 +9,6 @@ struct LaunchRouter: View {
         Group {
             if appState.isFirstLaunch {
                 FirstLaunchFlow()
-            } else if appState.isParentSessionActive {
-                ParentTabView(onExitToChild: {
-                    appState.isParentSessionActive = false
-                })
             } else {
                 ChildHomeView()
             }
@@ -70,7 +66,11 @@ struct FirstLaunchFlow: View {
         let child = ChildProfile.create(name: childName, context: context)
         let settings = ParentSettings.createDefaults(context: context)
         settings.activeLetterArray = selectedLetters
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("[EarnedRecess] Fetch error: \(error.localizedDescription)")
+        }
         appState.currentChild = child
         appState.parentSettings = settings
         appState.completeSetup()

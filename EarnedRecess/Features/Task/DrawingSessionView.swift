@@ -6,6 +6,7 @@ struct DrawingSessionView: View {
     let letter: String
     let attemptsRequired: Int
     let onDismiss: () -> Void
+    var onWatchYouTube: (() -> Void)? = nil
 
     @EnvironmentObject var appState: AppState
     @Environment(\.managedObjectContext) var context
@@ -36,7 +37,12 @@ struct DrawingSessionView: View {
                     session: session,
                     onWatchYouTube: {
                         appState.refreshBalance()
-                        onDismiss()
+                        if let watchAction = onWatchYouTube {
+                            onDismiss()
+                            watchAction()
+                        } else {
+                            onDismiss()
+                        }
                     },
                     onTryAgain: resetSession,
                     onGoHome: {
@@ -85,7 +91,7 @@ struct DrawingSessionView: View {
               let settings = appState.parentSettings else { return }
 
         let session = ScoringService.shared.finaliseSession(
-            letter: letter,
+            letter: effectiveLetter,
             phase: phase,
             scores: scores,
             inkDataItems: inkDataItems,

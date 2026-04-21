@@ -68,13 +68,13 @@ struct ParentSettingsView: View {
         letterFetchReq.predicate = NSPredicate(format: "child == %@", child)
         let letterDeleteReq = NSBatchDeleteRequest(fetchRequest: letterFetchReq)
         try? context.execute(letterDeleteReq)
-        context.reset()
 
         let rewardFetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "RewardSession")
         rewardFetchReq.predicate = NSPredicate(format: "child == %@", child)
         let rewardDeleteReq = NSBatchDeleteRequest(fetchRequest: rewardFetchReq)
         try? context.execute(rewardDeleteReq)
-        context.reset()
+
+        context.refreshAllObjects()
 
         // Reset child stats
         child.starMinutesBalance = 0

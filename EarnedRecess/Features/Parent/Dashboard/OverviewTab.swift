@@ -3,6 +3,7 @@ import Charts
 
 struct OverviewTab: View {
     let child: ChildProfile
+    @EnvironmentObject var appState: AppState
     @Environment(\.managedObjectContext) var context
 
     private var sessionRepo: SessionRepository { SessionRepository(context: context) }
@@ -44,7 +45,7 @@ struct OverviewTab: View {
                             .font(Theme.Fonts.parentHeadline())
                             .foregroundColor(.erGreen)
                     }
-                    ProgressView(value: Double(min(currentBalance, 120)), total: 120)
+                    ProgressView(value: Double(min(currentBalance, Int(appState.parentSettings?.maxDailyMinutes ?? 120))), total: Double(appState.parentSettings?.maxDailyMinutes ?? 120))
                         .tint(.erGreen)
                 }
                 .padding()

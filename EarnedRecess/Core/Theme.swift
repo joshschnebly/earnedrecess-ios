@@ -36,6 +36,9 @@ enum Theme {
         static func parentHeadline(_ size: CGFloat = 20) -> Font {
             .system(size: size, weight: .semibold, design: .default)
         }
+        static func parentCaption(_ size: CGFloat = 13) -> Font {
+            .system(size: size, weight: .regular, design: .rounded)
+        }
     }
 
     // MARK: - Spacing & Sizing

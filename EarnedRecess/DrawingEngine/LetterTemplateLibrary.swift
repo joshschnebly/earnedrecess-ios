@@ -109,11 +109,17 @@ enum LetterTemplateLibrary {
         )
     }
 
+    // MARK: - Image caches
+
+    private static var imageCache: [String: UIImage] = [:]
+    private static var dottedImageCache: [String: UIImage] = [:]
+
     // MARK: - Core Graphics
 
     private static func renderTemplateImage(letter: String, size: CGSize) -> UIImage {
+        if let cached = imageCache[letter] { return cached }
         let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { _ in
+        let image = renderer.image { _ in
             let font = UIFont.systemFont(ofSize: size.height * 0.80, weight: .bold)
             let attrs: [NSAttributedString.Key: Any] = [
                 .font: font,
@@ -124,11 +130,14 @@ enum LetterTemplateLibrary {
             str.draw(at: CGPoint(x: (size.width - textSize.width) / 2,
                                  y: (size.height - textSize.height) / 2))
         }
+        imageCache[letter] = image
+        return image
     }
 
     static func renderDottedTemplateImage(letter: String, size: CGSize) -> UIImage {
+        if let cached = dottedImageCache[letter] { return cached }
         let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { ctx in
+        let image = renderer.image { ctx in
             guard let path = renderGlyphPath(letter: letter, size: size) else { return }
             let cgCtx = ctx.cgContext
             cgCtx.addPath(path)
@@ -137,6 +146,8 @@ enum LetterTemplateLibrary {
             cgCtx.setStrokeColor(UIColor.systemBlue.withAlphaComponent(0.45).cgColor)
             cgCtx.strokePath()
         }
+        dottedImageCache[letter] = image
+        return image
     }
 
     private static func renderGlyphPath(letter: String, size: CGSize) -> CGPath? {

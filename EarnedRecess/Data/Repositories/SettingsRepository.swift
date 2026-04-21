@@ -1,7 +1,7 @@
 import CoreData
 import Foundation
 
-class SettingsRepository {
+final class SettingsRepository {
     private let context: NSManagedObjectContext
 
     init(context: NSManagedObjectContext) {
@@ -11,8 +11,12 @@ class SettingsRepository {
     func getOrCreateSettings() -> ParentSettings {
         let request = ParentSettings.fetchRequest()
         request.fetchLimit = 1
-        if let existing = try? context.fetch(request).first {
-            return existing
+        do {
+            if let existing = try context.fetch(request).first {
+                return existing
+            }
+        } catch {
+            print("[EarnedRecess] Fetch error: \(error.localizedDescription)")
         }
         return ParentSettings.createDefaults(context: context)
     }

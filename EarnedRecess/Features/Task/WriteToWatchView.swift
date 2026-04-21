@@ -12,10 +12,19 @@ struct WriteToWatchView: View {
         let firstWord = videoTitle
             .components(separatedBy: .whitespaces)
             .first(where: { !$0.isEmpty }) ?? videoTitle
-        return firstWord.uppercased().unicodeScalars.compactMap { scalar in
+        let fromFirstWord = firstWord.uppercased().unicodeScalars.compactMap { scalar in
             let s = String(scalar)
             return s.range(of: "^[A-Z]$", options: .regularExpression) != nil ? s : nil
         }
+        if !fromFirstWord.isEmpty { return fromFirstWord }
+        let fromTitle = Array(
+            videoTitle.uppercased().unicodeScalars.compactMap { scalar -> String? in
+                let s = String(scalar)
+                return s.range(of: "^[A-Z]$", options: .regularExpression) != nil ? s : nil
+            }.prefix(5)
+        )
+        if !fromTitle.isEmpty { return fromTitle }
+        return ["H", "I"]
     }
 
     @State private var currentIndex = 0
@@ -58,7 +67,7 @@ struct WriteToWatchView: View {
                     .cornerRadius(16)
                     .padding(Theme.Sizing.smallPadding)
                     .onAppear { canvasSize = geo.size }
-                    .onChange(of: currentIndex) { _ in canvasSize = geo.size }
+                    .onChange(of: currentIndex) { _, _ in canvasSize = geo.size }
                 }
 
                 if showFail {
