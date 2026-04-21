@@ -90,9 +90,8 @@ struct PINEntryView: View {
 
     private func verify() {
         if KeychainService.shared.verifyPIN(enteredPIN) {
-            // Success — reset attempt counter
-            UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.pinAttempts)
-            UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.pinLockoutUntil)
+            KeychainService.shared.setPINAttempts(0)
+            KeychainService.shared.setPINLockoutUntil(nil)
             onSuccess()
         } else {
             attempts += 1
@@ -111,8 +110,8 @@ struct PINEntryView: View {
 
     private func triggerLockout() {
         let until = Date().addingTimeInterval(TimeInterval(Constants.App.pinLockoutSeconds))
-        UserDefaults.standard.set(until, forKey: Constants.UserDefaultsKeys.pinLockoutUntil)
-        UserDefaults.standard.set(0, forKey: Constants.UserDefaultsKeys.pinAttempts)
+        KeychainService.shared.setPINLockoutUntil(until)
+        KeychainService.shared.setPINAttempts(0)
         attempts = 0
         isLockedOut = true
         lockoutSeconds = Constants.App.pinLockoutSeconds
@@ -131,19 +130,19 @@ struct PINEntryView: View {
     }
 
     private func persistAttempts() {
-        UserDefaults.standard.set(attempts, forKey: Constants.UserDefaultsKeys.pinAttempts)
+        KeychainService.shared.setPINAttempts(attempts)
     }
 
     private func checkLockout() {
-        attempts = UserDefaults.standard.integer(forKey: Constants.UserDefaultsKeys.pinAttempts)
-        if let until = UserDefaults.standard.object(forKey: Constants.UserDefaultsKeys.pinLockoutUntil) as? Date {
+        attempts = KeychainService.shared.getPINAttempts()
+        if let until = KeychainService.shared.getPINLockoutUntil() {
             let remaining = Int(until.timeIntervalSinceNow)
             if remaining > 0 {
                 isLockedOut = true
                 lockoutSeconds = remaining
                 startLockoutCountdown()
             } else {
-                UserDefaults.standard.removeObject(forKey: Constants.UserDefaultsKeys.pinLockoutUntil)
+                KeychainService.shared.setPINLockoutUntil(nil)
             }
         }
     }

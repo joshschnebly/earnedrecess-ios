@@ -1,7 +1,7 @@
 import PencilKit
 import CoreData
 
-class ScoringService {
+final class ScoringService {
     static let shared = ScoringService()
     private let analyzer = StrokeAnalyzer()
     private let progression = ProgressionEngine()
@@ -88,7 +88,11 @@ class ScoringService {
             }
         }
 
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
+        }
         return session
     }
 }

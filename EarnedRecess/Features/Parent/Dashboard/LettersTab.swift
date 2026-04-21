@@ -5,13 +5,16 @@ struct LettersTab: View {
     let child: ChildProfile
     let settings: ParentSettings
     @Environment(\.managedObjectContext) var context
+    @Environment(\.horizontalSizeClass) var sizeClass
 
     @State private var selectedLetter: String? = nil
 
     private var activeLetters: [String] { settings.activeLetterArray }
     private var letterRepo: LetterRepository { LetterRepository(context: context) }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 4)
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 12), count: sizeClass == .regular ? 6 : 4)
+    }
 
     var body: some View {
         ScrollView {
@@ -65,8 +68,8 @@ struct LetterGridCard: View {
         scores.isEmpty ? 0 : scores.reduce(0, +) / Double(scores.count)
     }
     private var trend: String {
-        guard scores.count >= 2 else { return "→" }
-        return scores.last! > scores.first! ? "↑" : scores.last! < scores.first! ? "↓" : "→"
+        guard scores.count >= 2, let last = scores.last, let first = scores.first else { return "→" }
+        return last > first ? "↑" : last < first ? "↓" : "→"
     }
     private var trendColor: Color {
         trend == "↑" ? .erGreen : trend == "↓" ? .erRed : .secondary

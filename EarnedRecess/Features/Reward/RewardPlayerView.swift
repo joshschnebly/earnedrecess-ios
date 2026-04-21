@@ -16,6 +16,7 @@ struct RewardPlayerView: View {
     // Session tracking
     @State private var rewardSession: RewardSession? = nil
     @State private var minutesWatchedAtStart: Int = 0
+    @State private var minuteTimer: Timer? = nil
 
     private var timer: RewardTimer { appState.rewardTimer }
     private var balance: Int { appState.starMinutesBalance }
@@ -106,9 +107,9 @@ struct RewardPlayerView: View {
 
         timer.start(minutes: appState.starMinutesBalance)
         timer.onExpired = {
-            // Deduct all spent minutes from balance
-            let spent = appState.starMinutesBalance  // was fully consumed
-            StarMinutesService.shared.spend(minutes: spent, from: appState.currentChild!, context: context)
+            guard let child = appState.currentChild else { endSession(); return }
+            let spent = appState.starMinutesBalance
+            StarMinutesService.shared.spend(minutes: spent, from: child, context: context)
             appState.refreshBalance()
             withAnimation { showTimerExpired = true }
         }
@@ -118,8 +119,8 @@ struct RewardPlayerView: View {
     }
 
     private func setupMinuteDeduction() {
-        // We track via the timer's remaining seconds — deduct from CoreData each minute boundary
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { t in
+        minuteTimer?.invalidate()
+        minuteTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [self] t in
             guard timer.isRunning else { t.invalidate(); return }
             guard let child = appState.currentChild else { t.invalidate(); return }
             let stillHas = StarMinutesService.shared.spendOneMinute(from: child, context: context)
@@ -131,6 +132,8 @@ struct RewardPlayerView: View {
     private func pauseEverything() {
         timer.pause()
         isPlaying = false
+        minuteTimer?.invalidate()
+        minuteTimer = nil
     }
 
     // MARK: - Session lifecycle

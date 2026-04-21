@@ -10,7 +10,7 @@ struct CalibrationSuggestion {
     enum SuggestionType { case tooEasy, tooHard, onTrack }
 }
 
-class CalibrationService {
+final class CalibrationService {
     static let shared = CalibrationService()
 
     private init() {}

@@ -81,6 +81,10 @@ extension ParentSettings {
     var isBedtime: Bool {
         Date().hour >= Int(bedtimeHour)
     }
+
+    var appModeEnum: AppMode { AppMode(rawValue: appMode) ?? .standard }
+    var letterCaseEnum: LetterCase { LetterCase(rawValue: letterCase) ?? .uppercase }
+    var templateStyleEnum: TemplateStyle { TemplateStyle(rawValue: templateStyle) ?? .solid }
 }
 
 extension ParentSettings: Identifiable {}

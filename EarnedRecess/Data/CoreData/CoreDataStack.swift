@@ -11,9 +11,17 @@ class CoreDataStack {
 
     private init() {
         container = NSPersistentContainer(name: "EarnedRecess")
-        container.loadPersistentStores { _, error in
+        container.loadPersistentStores { description, error in
             if let error {
-                fatalError("CoreData failed to load: \(error.localizedDescription)")
+                print("CoreData failed to load store '\(description.url?.lastPathComponent ?? "unknown")': \(error.localizedDescription). Falling back to in-memory store.")
+                let inMemoryDescription = NSPersistentStoreDescription()
+                inMemoryDescription.type = NSInMemoryStoreType
+                self.container.persistentStoreDescriptions = [inMemoryDescription]
+                self.container.loadPersistentStores { _, fallbackError in
+                    if let fallbackError {
+                        print("CoreData in-memory fallback also failed: \(fallbackError.localizedDescription)")
+                    }
+                }
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true

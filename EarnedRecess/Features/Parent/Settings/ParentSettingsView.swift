@@ -64,15 +64,17 @@ struct ParentSettingsView: View {
 
     private func resetAll(child: ChildProfile, settings: ParentSettings) {
         // Delete all letter sessions and reward sessions
-        let sessionReq = LetterSession.fetchRequest()
-        sessionReq.predicate = NSPredicate(format: "child == %@", child)
-        let sessions = (try? context.fetch(sessionReq)) ?? []
-        sessions.forEach { context.delete($0) }
+        let letterFetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "LetterSession")
+        letterFetchReq.predicate = NSPredicate(format: "child == %@", child)
+        let letterDeleteReq = NSBatchDeleteRequest(fetchRequest: letterFetchReq)
+        try? context.execute(letterDeleteReq)
+        context.reset()
 
-        let rewardReq = RewardSession.fetchRequest()
-        rewardReq.predicate = NSPredicate(format: "child == %@", child)
-        let rewards = (try? context.fetch(rewardReq)) ?? []
-        rewards.forEach { context.delete($0) }
+        let rewardFetchReq = NSFetchRequest<NSFetchRequestResult>(entityName: "RewardSession")
+        rewardFetchReq.predicate = NSPredicate(format: "child == %@", child)
+        let rewardDeleteReq = NSBatchDeleteRequest(fetchRequest: rewardFetchReq)
+        try? context.execute(rewardDeleteReq)
+        context.reset()
 
         // Reset child stats
         child.starMinutesBalance = 0

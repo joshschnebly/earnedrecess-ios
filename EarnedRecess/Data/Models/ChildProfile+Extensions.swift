@@ -38,7 +38,13 @@ extension ChildProfile {
                   let decoded = try? JSONDecoder().decode([String: Int].self, from: data) else { return [:] }
             return decoded
         }
-        set { phasePerLetterData = try? JSONEncoder().encode(newValue) }
+        set {
+            do {
+                phasePerLetterData = try JSONEncoder().encode(newValue)
+            } catch {
+                print("[EarnedRecess] JSON encode error: \(error.localizedDescription)")
+            }
+        }
     }
 
     func phase(for letter: String) -> Int { phasePerLetter[letter] ?? 1 }

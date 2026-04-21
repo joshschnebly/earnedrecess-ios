@@ -1,6 +1,6 @@
 import AVFoundation
 
-class SpeechService {
+final class SpeechService {
     static let shared = SpeechService()
     private let synthesizer = AVSpeechSynthesizer()
 

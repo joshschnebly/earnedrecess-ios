@@ -11,9 +11,9 @@ struct AttemptScoreView: View {
 
     private var message: String {
         switch stars {
-        case 3: return ["Amazing!", "Perfect!", "Wow, great job!", "Superstar! ⭐"].randomElement()!
-        case 2: return ["Good job!", "Nice try!", "Keep it up!", "Looking good!"].randomElement()!
-        default: return ["Try again!", "You can do it!", "Almost there!"].randomElement()!
+        case 3: return ["Amazing!", "Perfect!", "Wow, great job!", "Superstar! ⭐"].randomElement() ?? "Amazing!"
+        case 2: return ["Good job!", "Nice try!", "Keep it up!", "Looking good!"].randomElement() ?? "Good job!"
+        default: return ["Try again!", "You can do it!", "Almost there!"].randomElement() ?? "Try again!"
         }
     }
 

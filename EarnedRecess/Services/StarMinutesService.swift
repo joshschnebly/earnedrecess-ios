@@ -1,9 +1,11 @@
 import CoreData
 import Foundation
 
-class StarMinutesService {
+final class StarMinutesService {
     static let shared = StarMinutesService()
     private init() {}
+
+    private var saveWorkItem: DispatchWorkItem?
 
     // MARK: - Award
 
@@ -18,7 +20,11 @@ class StarMinutesService {
 
         child.starMinutesBalance += Int32(awarded)
         child.totalStarMinutesEarned += Int32(awarded)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
+        }
         return awarded
     }
 
@@ -30,7 +36,18 @@ class StarMinutesService {
         guard child.starMinutesBalance > 0 else { return false }
         child.starMinutesBalance -= 1
         child.totalStarMinutesSpent += 1
-        try? context.save()
+        saveWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.saveWorkItem = nil
+            guard context.hasChanges else { return }
+            do {
+                try context.save()
+            } catch {
+                print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
+            }
+        }
+        saveWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: work)
         return true
     }
 
@@ -38,14 +55,22 @@ class StarMinutesService {
         let toSpend = min(minutes, Int(child.starMinutesBalance))
         child.starMinutesBalance -= Int32(toSpend)
         child.totalStarMinutesSpent += Int32(toSpend)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Reset
 
     func resetDailyBalance(for child: ChildProfile, context: NSManagedObjectContext) {
         child.starMinutesBalance = 0
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("[EarnedRecess] CoreData save error: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Balance query

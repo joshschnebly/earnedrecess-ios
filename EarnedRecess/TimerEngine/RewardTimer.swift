@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 import Combine
 
-class RewardTimer: ObservableObject {
+final class RewardTimer: ObservableObject {
     @Published var remainingSeconds: Int = 0
     @Published var isRunning: Bool = false
     @Published var isExpired: Bool = false

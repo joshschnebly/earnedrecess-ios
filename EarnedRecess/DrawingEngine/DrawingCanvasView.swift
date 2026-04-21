@@ -32,7 +32,7 @@ struct DrawingCanvasView: UIViewRepresentable {
     }
 
     private func applyAlignmentLines(to canvas: PKCanvasView) {
-        canvas.subviews.filter { $0.tag == 998 }.forEach { $0.removeFromSuperview() }
+        canvas.subviews.filter { $0.tag == CanvasViewTag.alignment.rawValue }.forEach { $0.removeFromSuperview() }
         guard showAlignmentLines else { return }
         let lines: [(CGFloat, UIColor)] = [
             (0.15, UIColor(Color.erBlue).withAlphaComponent(0.20)),
@@ -42,7 +42,7 @@ struct DrawingCanvasView: UIViewRepresentable {
         ]
         for (fraction, color) in lines {
             let line = UIView()
-            line.tag = 998
+            line.tag = CanvasViewTag.alignment.rawValue
             line.backgroundColor = color
             line.translatesAutoresizingMaskIntoConstraints = false
             canvas.insertSubview(line, at: 0)
@@ -72,7 +72,7 @@ struct DrawingCanvasView: UIViewRepresentable {
         templateImageView.contentMode = .scaleAspectFit
         templateImageView.alpha = 1.0
         templateImageView.translatesAutoresizingMaskIntoConstraints = false
-        templateImageView.tag = 999
+        templateImageView.tag = CanvasViewTag.template.rawValue
         canvas.insertSubview(templateImageView, at: 0)
         NSLayoutConstraint.activate([
             templateImageView.leadingAnchor.constraint(equalTo: canvas.leadingAnchor, constant: 40),
@@ -91,7 +91,7 @@ struct DrawingCanvasView: UIViewRepresentable {
             canvas.drawing = drawing
         }
 
-        if let imageView = canvas.viewWithTag(999) as? UIImageView {
+        if let imageView = canvas.viewWithTag(CanvasViewTag.template.rawValue) as? UIImageView {
             imageView.image = backgroundImage
         }
 
@@ -100,7 +100,7 @@ struct DrawingCanvasView: UIViewRepresentable {
     }
 
     private func applyTracingArrows(to canvas: PKCanvasView) {
-        canvas.subviews.filter { $0.tag == 997 }.forEach { $0.removeFromSuperview() }
+        canvas.subviews.filter { $0.tag == CanvasViewTag.arrows.rawValue }.forEach { $0.removeFromSuperview() }
         guard tracingArrowsEnabled else { return }
         let strokes = StrokePathLibrary.strokes(for: template.letter)
         guard !strokes.isEmpty else { return }
@@ -110,7 +110,7 @@ struct DrawingCanvasView: UIViewRepresentable {
             continuous: tracingArrowsContinuous,
             sequential: tracingArrowsSequential
         )
-        arrowsView.tag = 997
+        arrowsView.tag = CanvasViewTag.arrows.rawValue
         arrowsView.translatesAutoresizingMaskIntoConstraints = false
         canvas.addSubview(arrowsView)
         NSLayoutConstraint.activate([

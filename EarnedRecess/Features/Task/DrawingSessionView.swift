@@ -18,11 +18,10 @@ struct DrawingSessionView: View {
     @State private var sessionStartTime = Date()
 
     private var effectiveLetter: String {
-        let lc = appState.parentSettings?.letterCase ?? "uppercase"
-        switch lc {
-        case "lowercase": return letter.lowercased()
-        case "both": return Bool.random() ? letter.uppercased() : letter.lowercased()
-        default: return letter.uppercased()
+        switch appState.parentSettings?.letterCaseEnum ?? .uppercase {
+        case .lowercase: return letter.lowercased()
+        case .both: return Bool.random() ? letter.uppercased() : letter.lowercased()
+        case .uppercase: return letter.uppercased()
         }
     }
 
@@ -95,7 +94,11 @@ struct DrawingSessionView: View {
             context: context
         )
         session.duration = Date().timeIntervalSince(sessionStartTime)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("DrawingSessionView: context.save() failed: \(error)")
+        }
 
         completedSession = session
         withAnimation { sessionComplete = true }

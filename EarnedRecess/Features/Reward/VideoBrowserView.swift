@@ -5,7 +5,7 @@ struct VideoBrowserView: View {
     let onSelectVideo: (YouTubeVideo) -> Void
     let onStop: () -> Void
 
-    @StateObject private var service = YouTubeKidsService.shared
+    private let service = YouTubeKidsService.shared
     @State private var videos: [YouTubeVideo] = []
     @State private var isLoading = false
     @State private var searchQuery = ""
@@ -17,12 +17,16 @@ struct VideoBrowserView: View {
         appState.parentSettings?.allowSearch ?? false
     }
 
+    @Environment(\.horizontalSizeClass) var sizeClass
+
     private var requiresWriteToWatch: Bool {
-        let mode = appState.parentSettings?.appMode ?? "standard"
-        return mode == "writeToWatch" || mode == "both"
+        let mode = appState.parentSettings?.appModeEnum ?? .standard
+        return mode == .writeToWatch || mode == .both
     }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16), count: sizeClass == .regular ? 4 : 3)
+    }
 
     var body: some View {
         VStack(spacing: 0) {

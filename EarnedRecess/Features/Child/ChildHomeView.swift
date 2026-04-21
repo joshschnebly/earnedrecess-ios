@@ -1,3 +1,4 @@
+import CoreData
 import SwiftUI
 
 struct ChildHomeView: View {
@@ -8,12 +9,13 @@ struct ChildHomeView: View {
     @State private var showParentModule: Bool = false
     @State private var navigateToTask: Bool = false
     @State private var navigateToReward: Bool = false
+    @State private var allLettersPracticedToday: Bool = false
 
     private var hasStars: Bool { appState.starMinutesBalance > 0 }
     private var childName: String { appState.currentChild?.name ?? "Friend" }
-    private var appMode: String { appState.parentSettings?.appMode ?? "standard" }
+    private var appMode: AppMode { appState.parentSettings?.appModeEnum ?? .standard }
 
-    private var allLettersPracticedToday: Bool {
+    private func computeAllLettersPracticedToday() -> Bool {
         guard let settings = appState.parentSettings,
               let child = appState.currentChild else { return true }
         let activeLetters = Set(settings.activeLetterArray)
@@ -41,16 +43,16 @@ struct ChildHomeView: View {
             Color.erBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                if appMode != "writeToWatch" {
+                if appMode != .writeToWatch {
                     StarWalletTopBar(balance: appState.starMinutesBalance)
                 }
 
                 Spacer()
 
                 VStack(spacing: 20) {
-                    MascotView(hasStars: appMode == "writeToWatch" ? true : hasStars)
+                    MascotView(hasStars: appMode == .writeToWatch ? true : hasStars)
 
-                    if appMode == "writeToWatch" {
+                    if appMode == .writeToWatch {
                         Text("Pick a video to watch!")
                             .font(Theme.Fonts.childBody(28))
                             .foregroundColor(.primary)
@@ -70,7 +72,7 @@ struct ChildHomeView: View {
                 Spacer()
 
                 HStack(spacing: 20) {
-                    if appMode != "writeToWatch" {
+                    if appMode != .writeToWatch {
                         ChildActionButton(
                             icon: "🎨",
                             label: "Draw\nLetters",
@@ -79,7 +81,7 @@ struct ChildHomeView: View {
                             action: { navigateToTask = true }
                         )
                     }
-                    if appMode == "writeToWatch" {
+                    if appMode == .writeToWatch {
                         ChildActionButton(
                             icon: "📺",
                             label: "Watch\nVideos",
@@ -99,7 +101,7 @@ struct ChildHomeView: View {
                 }
                 .padding(.horizontal, Theme.Sizing.padding)
 
-                if appMode != "writeToWatch",
+                if appMode != .writeToWatch,
                    hasStars,
                    let settings = appState.parentSettings,
                    settings.requireAllLetters,
@@ -151,9 +153,13 @@ struct ChildHomeView: View {
         }
         .onAppear {
             appState.refreshBalance()
+            allLettersPracticedToday = computeAllLettersPracticedToday()
             if appState.starMinutesBalance > 0 {
                 SpeechService.shared.speak("You earned \(appState.starMinutesBalance) star minutes!")
             }
+        }
+        .onChange(of: appState.starMinutesBalance) { _ in
+            allLettersPracticedToday = computeAllLettersPracticedToday()
         }
     }
 }
