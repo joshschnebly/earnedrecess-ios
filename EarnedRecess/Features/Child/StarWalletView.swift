@@ -49,9 +49,10 @@ struct StarWalletView: View {
                 withAnimation { showBurst = true }
             }
         }
-        .onChange(of: balance) { newValue in
+        .onChange(of: balance) { _, newValue in
+            let increased = newValue > animatedBalance
             withAnimation { animatedBalance = newValue }
-            if newValue > animatedBalance {
+            if increased {
                 showBurst = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation { showBurst = true }

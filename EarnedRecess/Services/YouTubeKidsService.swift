@@ -19,7 +19,7 @@ struct YouTubeChannel: Identifiable {
 
 // MARK: - Service
 
-final class YouTubeKidsService: ObservableObject {
+final class YouTubeKidsService {
     static let shared = YouTubeKidsService()
     private init() {}
 

@@ -27,7 +27,7 @@ struct ChildHomeView: View {
             child, startOfDay as NSDate
         )
         let sessions = (try? context.fetch(request)) ?? []
-        let practicedLetters = Set(sessions.map { $0.letter ?? "" })
+        let practicedLetters = Set(sessions.compactMap { $0.letter }.filter { !$0.isEmpty })
         return activeLetters.isSubset(of: practicedLetters)
     }
 

@@ -94,7 +94,6 @@ struct ParentTabView: View {
     }
 
     private func confirmExit() {
-        appState.isParentSessionActive = false
         onExitToChild()
     }
 }
