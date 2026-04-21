@@ -51,3 +51,7 @@ extension LetterSession {
 }
 
 extension LetterSession: Identifiable {}
+
+extension Collection where Element == LetterSession {
+    var letters: [String] { compactMap { $0.letter }.filter { !$0.isEmpty } }
+}

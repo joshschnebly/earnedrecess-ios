@@ -25,7 +25,7 @@ struct TaskGateView: View {
         )
         let todaySessions = (try? context.fetch(request)) ?? []
 
-        let practicedToday = Set(todaySessions.compactMap { $0.letter }.filter { !$0.isEmpty })
+        let practicedToday = Set(todaySessions.letters)
         let unpracticed = active.filter { !practicedToday.contains($0) }
 
         if let first = unpracticed.first {

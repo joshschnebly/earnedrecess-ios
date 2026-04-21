@@ -24,10 +24,10 @@ final class YouTubeKidsService {
     private init() {}
 
     let featuredChannels: [YouTubeChannel] = [
-        YouTubeChannel(id: "UCbCmjCuTUZos6Inko4u57UQ", name: "Bluey",      icon: "🐕"),
-        YouTubeChannel(id: "UCAOtE1V7Ots4twtDCWhpHYg", name: "Peppa Pig",  icon: "🐷"),
-        YouTubeChannel(id: "UCF2M_-q5oKF8cHk1KWo9gkA", name: "Paw Patrol", icon: "🐾"),
-        YouTubeChannel(id: "UCbCmjCuTUZos6Inko4u57UQ", name: "Cocomelon",  icon: "🍉"),
+        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[0], name: "Bluey",      icon: "🐕"),
+        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[1], name: "Peppa Pig",  icon: "🐷"),
+        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[2], name: "Paw Patrol", icon: "🐾"),
+        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[3], name: "Cocomelon",  icon: "🍉"),
     ]
 
     // MARK: - Search

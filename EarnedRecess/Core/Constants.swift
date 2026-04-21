@@ -21,7 +21,8 @@ enum Constants {
         static let featuredChannelIds: [String] = [
             "UCbCmjCuTUZos6Inko4u57UQ",  // Bluey
             "UCAOtE1V7Ots4twtDCWhpHYg",  // Peppa Pig
-            "UCbCmjCuTUZos6Inko4u57UQ",  // Cocomelon placeholder — update with real ID
+            "UCF2M_-q5oKF8cHk1KWo9gkA",  // Paw Patrol
+            "UCbCmjCuTUZos6Inko4u57UQ",  // Cocomelon — TODO: replace with real channel ID
         ]
     }
 
