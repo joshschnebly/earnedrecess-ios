@@ -77,14 +77,23 @@ extension ParentSettings {
     var channelArray: [StoredChannel] {
         get {
             guard let raw = youtubeChannelWhitelist,
-                  let data = raw.data(using: .utf8),
-                  let channels = try? JSONDecoder().decode([StoredChannel].self, from: data) else {
+                  let data = raw.data(using: .utf8) else {
                 return Constants.YouTube.defaultChannels
             }
-            return channels
+            do {
+                return try JSONDecoder().decode([StoredChannel].self, from: data)
+            } catch {
+                print("[EarnedRecess] channelArray decode failed: \(error)")
+                return Constants.YouTube.defaultChannels
+            }
         }
         set {
-            youtubeChannelWhitelist = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? nil
+            guard let data = try? JSONEncoder().encode(newValue),
+                  let json = String(data: data, encoding: .utf8) else {
+                print("[EarnedRecess] channelArray encode failed — keeping existing value")
+                return
+            }
+            youtubeChannelWhitelist = json
         }
     }
 

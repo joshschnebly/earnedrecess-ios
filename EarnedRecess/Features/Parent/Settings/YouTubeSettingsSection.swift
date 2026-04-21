@@ -219,7 +219,7 @@ private struct AddChannelSheet: View {
         if let channel = result {
             resolved = channel
         } else if !hasAPIKey {
-            errorMessage = "Could not parse a channel ID from that input. Make sure it starts with UC and is 24 characters."
+            errorMessage = "No API key configured. Enter the raw channel ID (24 characters starting with UC)."
         } else {
             errorMessage = "Channel not found. Check the handle or URL and try again."
         }

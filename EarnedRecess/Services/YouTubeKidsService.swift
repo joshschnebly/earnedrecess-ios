@@ -96,12 +96,12 @@ final class YouTubeKidsService {
 
         // Try channels endpoint with forHandle (cheapest: 1 unit)
         if let handle = extractHandle(from: trimmed) {
-            if let channel = await fetchChannelByHandle(handle, key: key) { return channel }
+            if let ch = await fetchChannel(param: URLQueryItem(name: "forHandle", value: handle), key: key) { return ch }
         }
 
-        // Fallback: try channels endpoint with id if we have a raw UC… ID
+        // Fallback: raw UC… channel ID
         if let id = rawId {
-            if let channel = await fetchChannelById(id, key: key) { return channel }
+            if let ch = await fetchChannel(param: URLQueryItem(name: "id", value: id), key: key) { return ch }
         }
 
         return nil
@@ -110,49 +110,30 @@ final class YouTubeKidsService {
     // MARK: - Private: Channel lookup helpers
 
     private func extractHandle(from input: String) -> String? {
-        // Accept: @handle, youtube.com/@handle, https://youtube.com/@handle
         if input.hasPrefix("@") { return String(input.dropFirst()) }
-        if let url = URL(string: input.hasPrefix("http") ? input : "https://\(input)"),
-           let path = url.host.map({ _ in url.path }),
-           path.hasPrefix("/@") {
-            return String(path.dropFirst(2))  // drop /@
-        }
-        return nil
+        let urlString = input.hasPrefix("http") ? input : "https://\(input)"
+        guard let url = URL(string: urlString),
+              url.host?.contains("youtube.com") == true,
+              url.path.hasPrefix("/@") else { return nil }
+        return String(url.path.dropFirst(2))
     }
 
     private func extractChannelId(from input: String) -> String? {
-        // Raw UC... channel ID
         if input.hasPrefix("UC") && input.count == 24 { return input }
-        // URL containing /channel/UC...
         if let range = input.range(of: "/channel/") {
-            let after = String(input[range.upperBound...])
-            let id = String(after.prefix(24))
+            let id = String(input[range.upperBound...].prefix(24))
             if id.hasPrefix("UC") { return id }
         }
         return nil
     }
 
-    private func fetchChannelByHandle(_ handle: String, key: String) async -> StoredChannel? {
-        var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/channels")!
-        components.queryItems = [
-            URLQueryItem(name: "part",      value: "snippet"),
-            URLQueryItem(name: "forHandle", value: handle),
-            URLQueryItem(name: "key",       value: key),
-        ]
-        return await fetchChannelFromComponents(components)
-    }
-
-    private func fetchChannelById(_ id: String, key: String) async -> StoredChannel? {
-        var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/channels")!
+    private func fetchChannel(param: URLQueryItem, key: String) async -> StoredChannel? {
+        guard var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/channels") else { return nil }
         components.queryItems = [
             URLQueryItem(name: "part", value: "snippet"),
-            URLQueryItem(name: "id",   value: id),
+            param,
             URLQueryItem(name: "key",  value: key),
         ]
-        return await fetchChannelFromComponents(components)
-    }
-
-    private func fetchChannelFromComponents(_ components: URLComponents) async -> StoredChannel? {
         guard let url = components.url else { return nil }
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
