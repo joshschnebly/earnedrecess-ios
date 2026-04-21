@@ -4,14 +4,10 @@ struct YouTubeSettingsSection: View {
     @ObservedObject var settings: ParentSettings
     let onSave: () -> Void
 
-    @State private var newChannelId: String = ""
-    @State private var showAddChannel = false
-
-    private var whitelist: [String] { settings.channelWhitelistArray }
+    @State private var showAddSheet = false
 
     var body: some View {
         Section {
-            // Allow search toggle
             Toggle(
                 "Allow video search",
                 isOn: Binding(
@@ -25,48 +21,8 @@ struct YouTubeSettingsSection: View {
                     .foregroundColor(.secondary)
             }
 
-            // Channel whitelist
-            DisclosureGroup("Channel whitelist (\(whitelist.count))") {
-                ForEach(whitelist, id: \.self) { channelId in
-                    HStack {
-                        Image(systemName: "play.rectangle")
-                            .foregroundColor(.erBlue)
-                        Text(channelId)
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundColor(.secondary)
-                        Spacer()
-                        Button(role: .destructive) {
-                            removeChannel(channelId)
-                        } label: {
-                            Image(systemName: "trash")
-                                .foregroundColor(.erRed)
-                        }
-                    }
-                }
-
-                // Add new channel
-                if showAddChannel {
-                    HStack {
-                        TextField("YouTube Channel ID", text: $newChannelId)
-                            .font(.system(.body, design: .monospaced))
-                            .autocorrectionDisabled()
-                        Button("Add") {
-                            addChannel()
-                        }
-                        .disabled(newChannelId.trimmingCharacters(in: .whitespaces).isEmpty)
-                        .foregroundColor(.erBlue)
-                    }
-                }
-
-                Button(action: { showAddChannel.toggle() }) {
-                    Label(showAddChannel ? "Cancel" : "Add Channel ID", systemImage: showAddChannel ? "xmark" : "plus")
-                }
-                .foregroundColor(.erBlue)
-            }
-
-            // Safe search info
             HStack {
-                Text("Safe search level")
+                Text("Safe search")
                 Spacer()
                 Text("Strict (always)")
                     .foregroundColor(.secondary)
@@ -74,24 +30,198 @@ struct YouTubeSettingsSection: View {
 
         } header: {
             Label("YouTube Settings", systemImage: "play.tv")
+        }
+
+        Section {
+            ForEach(settings.channelArray) { channel in
+                ChannelRow(channel: channel)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            removeChannel(channel)
+                        } label: {
+                            Label("Remove", systemImage: "trash")
+                        }
+                    }
+            }
+
+            Button {
+                showAddSheet = true
+            } label: {
+                Label("Add channel…", systemImage: "plus.circle.fill")
+                    .foregroundColor(.erBlue)
+            }
+
+        } header: {
+            Text("Channels")
         } footer: {
-            Text("Channel IDs can be found in a channel's YouTube URL.")
+            Text("Tap a channel in the video browser to search only that channel's videos.")
+        }
+        .sheet(isPresented: $showAddSheet) {
+            AddChannelSheet { channel in
+                addChannel(channel)
+                showAddSheet = false
+            }
         }
     }
 
-    private func addChannel() {
-        let id = newChannelId.trimmingCharacters(in: .whitespaces)
-        guard !id.isEmpty, !whitelist.contains(id) else { return }
-        var updated = whitelist
-        updated.append(id)
-        settings.channelWhitelistArray = updated
-        newChannelId = ""
-        showAddChannel = false
+    private func removeChannel(_ channel: StoredChannel) {
+        settings.channelArray = settings.channelArray.filter { $0.id != channel.id }
         onSave()
     }
 
-    private func removeChannel(_ id: String) {
-        settings.channelWhitelistArray = whitelist.filter { $0 != id }
+    private func addChannel(_ channel: StoredChannel) {
+        guard !settings.channelArray.contains(where: { $0.id == channel.id }) else { return }
+        settings.channelArray = settings.channelArray + [channel]
         onSave()
+    }
+}
+
+// MARK: - Channel row
+
+private struct ChannelRow: View {
+    let channel: StoredChannel
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let urlString = channel.thumbnailURL,
+               let url = URL(string: urlString) {
+                AsyncImage(url: url) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    iconView
+                }
+                .frame(width: 36, height: 36)
+                .clipShape(Circle())
+            } else {
+                iconView
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(channel.name)
+                    .font(.body)
+                Text(channel.id)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private var iconView: some View {
+        ZStack {
+            Circle().fill(Color.erBlue.opacity(0.12))
+            Text(channel.icon.isEmpty ? "📺" : channel.icon)
+                .font(.system(size: 18))
+        }
+        .frame(width: 36, height: 36)
+    }
+}
+
+// MARK: - Add Channel Sheet
+
+private struct AddChannelSheet: View {
+    let onConfirm: (StoredChannel) -> Void
+
+    @State private var input: String = ""
+    @State private var isResolving = false
+    @State private var resolved: StoredChannel? = nil
+    @State private var errorMessage: String? = nil
+    @Environment(\.dismiss) private var dismiss
+
+    private var hasAPIKey: Bool { !YouTubeKidsService.shared.youTubeAPIKey.isEmpty }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField(
+                        hasAPIKey ? "@handle or channel URL" : "Channel ID (UC…)",
+                        text: $input
+                    )
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onChange(of: input) { _, _ in
+                        resolved = nil
+                        errorMessage = nil
+                    }
+
+                    if !hasAPIKey {
+                        Text("Add your YouTube API key to look up channels by handle. For now, enter the raw channel ID (starts with UC).")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Text("Find channel")
+                } footer: {
+                    Text(hasAPIKey
+                         ? "Example: @SheriffLabrador or youtube.com/@SheriffLabrador"
+                         : "Example: UCXIvAXVdbUDzIFhVwB9RR-g")
+                }
+
+                if isResolving {
+                    Section {
+                        HStack {
+                            ProgressView()
+                            Text("Looking up channel…")
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 8)
+                        }
+                    }
+                }
+
+                if let channel = resolved {
+                    Section("Preview") {
+                        ChannelRow(channel: channel)
+
+                        Button("Add \"\(channel.name)\"") {
+                            onConfirm(channel)
+                        }
+                        .foregroundColor(.erBlue)
+                        .fontWeight(.semibold)
+                    }
+                }
+
+                if let error = errorMessage {
+                    Section {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .foregroundColor(.erRed)
+                    }
+                }
+            }
+            .navigationTitle("Add Channel")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Look up") {
+                        Task { await lookupChannel() }
+                    }
+                    .disabled(input.trimmingCharacters(in: .whitespaces).isEmpty || isResolving)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func lookupChannel() async {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        isResolving = true
+        resolved = nil
+        errorMessage = nil
+
+        let result = await YouTubeKidsService.shared.resolveChannel(input: trimmed)
+
+        isResolving = false
+
+        if let channel = result {
+            resolved = channel
+        } else if !hasAPIKey {
+            errorMessage = "Could not parse a channel ID from that input. Make sure it starts with UC and is 24 characters."
+        } else {
+            errorMessage = "Channel not found. Check the handle or URL and try again."
+        }
     }
 }

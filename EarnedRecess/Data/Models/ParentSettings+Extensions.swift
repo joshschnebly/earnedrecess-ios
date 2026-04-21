@@ -55,7 +55,7 @@ extension ParentSettings {
         settings.bedtimeHour = Int32(Constants.App.defaultBedtimeHour)
         settings.allowSearch = false
         settings.writeToWatchThreshold = 0.50
-        settings.youtubeChannelWhitelist = Constants.YouTube.featuredChannelIds.joined(separator: ",")
+        settings.channelArray = Constants.YouTube.defaultChannels
         settings.appMode = "standard"
         settings.tracingArrowsEnabled = false
         settings.tracingArrowsContinuous = true
@@ -73,10 +73,23 @@ extension ParentSettings {
         set { activeLetters = newValue.joined(separator: ",") }
     }
 
-    var channelWhitelistArray: [String] {
-        get { (youtubeChannelWhitelist ?? "").components(separatedBy: ",").filter { !$0.isEmpty } }
-        set { youtubeChannelWhitelist = newValue.joined(separator: ",") }
+    /// Full channel objects (name + icon + optional thumbnail). Stored as JSON.
+    var channelArray: [StoredChannel] {
+        get {
+            guard let raw = youtubeChannelWhitelist,
+                  let data = raw.data(using: .utf8),
+                  let channels = try? JSONDecoder().decode([StoredChannel].self, from: data) else {
+                return Constants.YouTube.defaultChannels
+            }
+            return channels
+        }
+        set {
+            youtubeChannelWhitelist = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? nil
+        }
     }
+
+    /// Just the channel IDs — used for API search queries.
+    var channelWhitelistArray: [String] { channelArray.map(\.id) }
 
     var isBedtime: Bool {
         Date().hour >= Int(bedtimeHour)

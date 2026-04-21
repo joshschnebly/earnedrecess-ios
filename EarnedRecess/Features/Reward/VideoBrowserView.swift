@@ -85,9 +85,9 @@ struct VideoBrowserView: View {
                     }
                 )
 
-                ForEach(service.featuredChannels) { channel in
+                ForEach(appState.parentSettings?.channelArray ?? Constants.YouTube.defaultChannels) { channel in
                     ChannelChip(
-                        label: "\(channel.icon) \(channel.name)",
+                        label: "\(channel.icon.isEmpty ? "📺" : channel.icon) \(channel.name)",
                         isSelected: selectedChannelId == channel.id,
                         onTap: {
                             selectedChannelId = channel.id

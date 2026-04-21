@@ -17,12 +17,14 @@ enum Constants {
         static let safeSearchLevel = "strict"
         static let defaultVideoCategoryId = "1"
         static let defaultMaxResults = 20
-        // Curated safe channel IDs
-        static let featuredChannelIds: [String] = [
-            "UCbCmjCuTUZos6Inko4u57UQ",  // Bluey
-            "UCAOtE1V7Ots4twtDCWhpHYg",  // Peppa Pig
-            "UCF2M_-q5oKF8cHk1KWo9gkA",  // Paw Patrol
-            "UCbCmjCuTUZos6Inko4u57UQ",  // Cocomelon — TODO: replace with real channel ID
+
+        static let defaultChannels: [StoredChannel] = [
+            StoredChannel(id: "UCAOtE1V7Ots4DjM8JLlrYgg", name: "Peppa Pig",        icon: "🐷"),
+            StoredChannel(id: "UCF2M_-q5oKF8cHk1KWo9gkA", name: "Paw Patrol",        icon: "🐾"),
+            StoredChannel(id: "UCKeKanAZfSYH0nzP3UGd_hQ", name: "JunyTony",          icon: "🎨"),
+            StoredChannel(id: "UCVNm0g-f5xH7Nym_KpD_9BA", name: "Pit & Penny",       icon: "🐶"),
+            StoredChannel(id: "UCXIvAXVdbUDzIFhVwB9RR-g", name: "Sheriff Labrador",  icon: "🚔"),
+            StoredChannel(id: "UCDeGOkuOcGFsT3qcKdm4a9A", name: "Disney Junior",      icon: "🏰"),
         ]
     }
 

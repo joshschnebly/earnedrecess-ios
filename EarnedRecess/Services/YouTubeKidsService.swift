@@ -1,5 +1,4 @@
 import Foundation
-import Combine
 
 // MARK: - Models
 
@@ -11,10 +10,25 @@ struct YouTubeVideo: Identifiable, Equatable {
     let duration: String?
 }
 
-struct YouTubeChannel: Identifiable {
+/// Lightweight channel model used in the video browser UI.
+struct YouTubeChannel: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let icon: String           // emoji for built-in channels; empty for user-added
+    let thumbnailURL: URL?     // set when resolved via API
+}
+
+/// Codable channel stored in ParentSettings.youtubeChannelWhitelist (JSON array).
+struct StoredChannel: Codable, Equatable, Identifiable {
     let id: String
     let name: String
     let icon: String
+    var thumbnailURL: String?
+
+    var asChannel: YouTubeChannel {
+        YouTubeChannel(id: id, name: name, icon: icon,
+                       thumbnailURL: thumbnailURL.flatMap(URL.init))
+    }
 }
 
 // MARK: - Service
@@ -23,22 +37,13 @@ final class YouTubeKidsService {
     static let shared = YouTubeKidsService()
     private init() {}
 
-    let featuredChannels: [YouTubeChannel] = [
-        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[0], name: "Bluey",      icon: "🐕"),
-        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[1], name: "Peppa Pig",  icon: "🐷"),
-        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[2], name: "Paw Patrol", icon: "🐾"),
-        YouTubeChannel(id: Constants.YouTube.featuredChannelIds[3], name: "Cocomelon",  icon: "🍉"),
-    ]
-
     // MARK: - Search
 
     func searchVideos(query: String = "cartoons for kids",
                       channelId: String? = nil,
                       maxResults: Int = Constants.YouTube.defaultMaxResults) async -> [YouTubeVideo] {
         let key = youTubeAPIKey
-        guard !key.isEmpty else {
-            return mockVideos(for: query)
-        }
+        guard !key.isEmpty else { return mockVideos(for: query) }
 
         var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/search")!
         var params: [URLQueryItem] = [
@@ -66,8 +71,98 @@ final class YouTubeKidsService {
                 )
             }
         } catch {
-            print("YouTubeKidsService error: \(error)")
+            print("[EarnedRecess] YouTubeKidsService.searchVideos error: \(error)")
             return mockVideos(for: query)
+        }
+    }
+
+    // MARK: - Channel Resolution
+
+    /// Resolves a YouTube handle, URL, or raw channel ID into a StoredChannel.
+    /// Accepts: @SheriffLabrador, youtube.com/@SheriffLabrador, UCxxxxxxx, full URLs.
+    /// Returns nil if the API call fails or the key is absent (caller shows fallback UI).
+    func resolveChannel(input: String) async -> StoredChannel? {
+        let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = youTubeAPIKey
+
+        // Determine if input is already a raw channel ID (starts with UC and ~24 chars)
+        let rawId = extractChannelId(from: trimmed)
+
+        // No API key — return a stub with whatever ID we could extract
+        guard !key.isEmpty else {
+            guard let id = rawId else { return nil }
+            return StoredChannel(id: id, name: "Unknown channel", icon: "", thumbnailURL: nil)
+        }
+
+        // Try channels endpoint with forHandle (cheapest: 1 unit)
+        if let handle = extractHandle(from: trimmed) {
+            if let channel = await fetchChannelByHandle(handle, key: key) { return channel }
+        }
+
+        // Fallback: try channels endpoint with id if we have a raw UC… ID
+        if let id = rawId {
+            if let channel = await fetchChannelById(id, key: key) { return channel }
+        }
+
+        return nil
+    }
+
+    // MARK: - Private: Channel lookup helpers
+
+    private func extractHandle(from input: String) -> String? {
+        // Accept: @handle, youtube.com/@handle, https://youtube.com/@handle
+        if input.hasPrefix("@") { return String(input.dropFirst()) }
+        if let url = URL(string: input.hasPrefix("http") ? input : "https://\(input)"),
+           let path = url.host.map({ _ in url.path }),
+           path.hasPrefix("/@") {
+            return String(path.dropFirst(2))  // drop /@
+        }
+        return nil
+    }
+
+    private func extractChannelId(from input: String) -> String? {
+        // Raw UC... channel ID
+        if input.hasPrefix("UC") && input.count == 24 { return input }
+        // URL containing /channel/UC...
+        if let range = input.range(of: "/channel/") {
+            let after = String(input[range.upperBound...])
+            let id = String(after.prefix(24))
+            if id.hasPrefix("UC") { return id }
+        }
+        return nil
+    }
+
+    private func fetchChannelByHandle(_ handle: String, key: String) async -> StoredChannel? {
+        var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/channels")!
+        components.queryItems = [
+            URLQueryItem(name: "part",      value: "snippet"),
+            URLQueryItem(name: "forHandle", value: handle),
+            URLQueryItem(name: "key",       value: key),
+        ]
+        return await fetchChannelFromComponents(components)
+    }
+
+    private func fetchChannelById(_ id: String, key: String) async -> StoredChannel? {
+        var components = URLComponents(string: "https://www.googleapis.com/youtube/v3/channels")!
+        components.queryItems = [
+            URLQueryItem(name: "part", value: "snippet"),
+            URLQueryItem(name: "id",   value: id),
+            URLQueryItem(name: "key",  value: key),
+        ]
+        return await fetchChannelFromComponents(components)
+    }
+
+    private func fetchChannelFromComponents(_ components: URLComponents) async -> StoredChannel? {
+        guard let url = components.url else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let response = try JSONDecoder().decode(ChannelListResponse.self, from: data)
+            guard let item = response.items.first else { return nil }
+            let thumb = item.snippet.thumbnails.default?.url
+            return StoredChannel(id: item.id, name: item.snippet.title, icon: "", thumbnailURL: thumb)
+        } catch {
+            print("[EarnedRecess] resolveChannel error: \(error)")
+            return nil
         }
     }
 
@@ -75,24 +170,24 @@ final class YouTubeKidsService {
     // Reads from Secrets.swift (gitignored). Falls back to mock data until key is added.
     // Create EarnedRecess/Resources/Secrets.swift:
     //   enum Secrets { static let youTubeAPIKey = "YOUR_KEY" }
-    // Then delete the YoutubeAPIKey extension at bottom of this file.
+    // Then replace the stub below with: static let value = Secrets.youTubeAPIKey
 
-    private var youTubeAPIKey: String {
-        YoutubeAPIKey.value
-    }
+    var youTubeAPIKey: String { YoutubeAPIKey.value }
 
     // MARK: - Mock data
 
     func mockVideos(for query: String) -> [YouTubeVideo] {
         let titles = [
-            "Bluey - Dad Baby", "Peppa Pig Full Episodes", "Paw Patrol Rescue",
-            "Cocomelon Nursery Rhymes", "Bluey - The Creek", "Peppa Pig Swimming",
-            "PAW Patrol Sea Patrol", "Baby Shark Dance", "Bluey - Markets",
-            "Peppa Pig Fancy Dress", "Paw Patrol Jungle", "Five Little Monkeys",
+            "Peppa Pig Full Episodes", "Paw Patrol Rescue", "JunyTony Colors",
+            "Pit & Penny Adventures", "Sheriff Labrador & Friends", "Disney Junior Minnie",
+            "Peppa Pig Swimming", "PAW Patrol Sea Patrol", "JunyTony Numbers",
+            "Pit & Penny Beach Day", "Sheriff Labrador Case", "Minnie Bowtique",
         ]
+        let channels = ["Peppa Pig", "PAW Patrol", "JunyTony", "Pit & Penny",
+                        "Sheriff Labrador", "Disney Junior"]
         return titles.enumerated().map { i, title in
             YouTubeVideo(id: "mock_\(i)", title: title,
-                         channelName: ["Bluey Official","Peppa Pig","PAW Patrol"][i % 3],
+                         channelName: channels[i % channels.count],
                          thumbnailURL: nil, duration: nil)
         }
     }
@@ -110,6 +205,20 @@ private struct YouTubeSearchResponse: Codable {
         let thumbnails: Thumbnails
     }
     struct Thumbnails: Codable { let medium: ThumbnailInfo }
+    struct ThumbnailInfo: Codable { let url: String }
+}
+
+private struct ChannelListResponse: Codable {
+    let items: [ChannelItem]
+    struct ChannelItem: Codable {
+        let id: String
+        let snippet: Snippet
+    }
+    struct Snippet: Codable {
+        let title: String
+        let thumbnails: Thumbnails
+    }
+    struct Thumbnails: Codable { let `default`: ThumbnailInfo? }
     struct ThumbnailInfo: Codable { let url: String }
 }
 
