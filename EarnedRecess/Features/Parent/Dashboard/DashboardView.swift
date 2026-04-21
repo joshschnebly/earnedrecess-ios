@@ -1,9 +1,14 @@
 import SwiftUI
+import CoreData
 
 struct DashboardView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.managedObjectContext) var context
+    var onGoToSettings: (() -> Void)? = nil
 
     @State private var selectedTab: DashTab = .overview
+    @State private var calibrationSuggestion: CalibrationSuggestion? = nil
+    @State private var bannerDismissed = false
 
     enum DashTab: String, CaseIterable {
         case overview  = "Overview"
@@ -26,7 +31,23 @@ struct DashboardView: View {
             if let child = appState.currentChild,
                let settings = appState.parentSettings {
                 VStack(spacing: 0) {
-                    // Custom segmented picker (4 tabs don't fit default segmented well on iPad)
+                    if settings.autoCalibrationEnabled,
+                       !bannerDismissed,
+                       let suggestion = calibrationSuggestion,
+                       suggestion.type != .onTrack {
+                        CalibrationBannerView(
+                            suggestion: suggestion,
+                            onAdjustNow: {
+                                if let threshold = suggestion.suggestedPassingThreshold {
+                                    settings.passingThreshold = threshold
+                                    CoreDataStack.shared.save()
+                                }
+                                onGoToSettings?()
+                            },
+                            onDismiss: { bannerDismissed = true }
+                        )
+                    }
+
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(DashTab.allCases, id: \.self) { tab in
@@ -44,7 +65,6 @@ struct DashboardView: View {
 
                     Divider()
 
-                    // Tab content
                     switch selectedTab {
                     case .overview:
                         OverviewTab(child: child)
@@ -55,6 +75,13 @@ struct DashboardView: View {
                     case .watchTime:
                         WatchTimeTab(child: child)
                     }
+                }
+                .onAppear {
+                    calibrationSuggestion = CalibrationService.shared.analyze(
+                        child: child,
+                        settings: settings,
+                        context: context
+                    )
                 }
             } else {
                 ProgressView("Loading…")

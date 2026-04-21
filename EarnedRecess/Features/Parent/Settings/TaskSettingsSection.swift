@@ -148,6 +148,49 @@ struct TaskSettingsSection: View {
                 )
             )
 
+            // Letter sounds
+            Toggle(
+                "Letter sounds",
+                isOn: Binding(
+                    get: { settings.letterSoundsEnabled },
+                    set: { settings.letterSoundsEnabled = $0; onSave() }
+                )
+            )
+
+            // Word association splash
+            Toggle(
+                "Word association splash",
+                isOn: Binding(
+                    get: { settings.wordAssociationEnabled },
+                    set: { settings.wordAssociationEnabled = $0; onSave() }
+                )
+            )
+
+            // Tracing arrows
+            Toggle(
+                "Stroke guide arrows",
+                isOn: Binding(
+                    get: { settings.tracingArrowsEnabled },
+                    set: { settings.tracingArrowsEnabled = $0; onSave() }
+                )
+            )
+            if settings.tracingArrowsEnabled {
+                Toggle(
+                    "Loop continuously",
+                    isOn: Binding(
+                        get: { settings.tracingArrowsContinuous },
+                        set: { settings.tracingArrowsContinuous = $0; onSave() }
+                    )
+                )
+                Toggle(
+                    "One stroke at a time",
+                    isOn: Binding(
+                        get: { settings.tracingArrowsSequential },
+                        set: { settings.tracingArrowsSequential = $0; onSave() }
+                    )
+                )
+            }
+
         } header: {
             Label("Task Settings", systemImage: "pencil")
         }

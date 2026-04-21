@@ -27,6 +27,13 @@ extension ParentSettings {
     @NSManaged public var writeToWatchThreshold: Double
     @NSManaged public var youtubeChannelWhitelist: String?
     @NSManaged public var appMode: String
+    @NSManaged public var tracingArrowsEnabled: Bool
+    @NSManaged public var tracingArrowsContinuous: Bool
+    @NSManaged public var tracingArrowsSequential: Bool
+    @NSManaged public var letterSoundsEnabled: Bool
+    @NSManaged public var wordAssociationEnabled: Bool
+    @NSManaged public var autoCalibrationEnabled: Bool
+    @NSManaged public var calibrationWindow: Int32
 }
 
 extension ParentSettings {
@@ -50,6 +57,13 @@ extension ParentSettings {
         settings.writeToWatchThreshold = 0.50
         settings.youtubeChannelWhitelist = Constants.YouTube.featuredChannelIds.joined(separator: ",")
         settings.appMode = "standard"
+        settings.tracingArrowsEnabled = false
+        settings.tracingArrowsContinuous = true
+        settings.tracingArrowsSequential = false
+        settings.letterSoundsEnabled = true
+        settings.wordAssociationEnabled = true
+        settings.autoCalibrationEnabled = true
+        settings.calibrationWindow = 10
         try? context.save()
         return settings
     }

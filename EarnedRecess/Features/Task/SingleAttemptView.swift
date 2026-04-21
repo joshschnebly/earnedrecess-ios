@@ -15,6 +15,7 @@ struct SingleAttemptView: View {
     @State private var lastScore: DrawingScore = .zero
     @State private var lastInkData: Data? = nil
     @State private var canvasSize: CGSize = .zero
+    @State private var showSplash = false
 
     private var template: LetterTemplate {
         LetterTemplateLibrary.template(for: letter)
@@ -38,7 +39,10 @@ struct SingleAttemptView: View {
                         phase: phase,
                         isEnabled: !showScore,
                         showAlignmentLines: appState.parentSettings?.showAlignmentLines ?? false,
-                        templateStyle: appState.parentSettings?.templateStyle ?? "solid"
+                        templateStyle: appState.parentSettings?.templateStyle ?? "solid",
+                        tracingArrowsEnabled: appState.parentSettings?.tracingArrowsEnabled ?? false,
+                        tracingArrowsContinuous: appState.parentSettings?.tracingArrowsContinuous ?? true,
+                        tracingArrowsSequential: appState.parentSettings?.tracingArrowsSequential ?? false
                     )
                     .cornerRadius(16)
                     .padding(Theme.Sizing.smallPadding)
@@ -55,9 +59,26 @@ struct SingleAttemptView: View {
                 )
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
             }
+
+            if showSplash {
+                LetterIntroSplashView(letter: letter) {
+                    showSplash = false
+                    speakPrompt()
+                }
+                .transition(.opacity)
+                .zIndex(1)
+            }
         }
         .animation(.spring(response: 0.35), value: showScore)
-        .onAppear { SpeechService.shared.speak("Draw the letter \(letter)") }
+        .onAppear {
+            let soundsEnabled = appState.parentSettings?.letterSoundsEnabled ?? true
+            let wordEnabled = appState.parentSettings?.wordAssociationEnabled ?? true
+            if attemptNumber == 1 && (soundsEnabled || wordEnabled) {
+                showSplash = true
+            } else {
+                speakPrompt()
+            }
+        }
     }
 
     // MARK: - Sub-views
@@ -119,6 +140,20 @@ struct SingleAttemptView: View {
     }
 
     // MARK: - Actions
+
+    private func speakPrompt() {
+        let soundsEnabled = appState.parentSettings?.letterSoundsEnabled ?? true
+        let base = "Draw the letter \(letter)"
+        if soundsEnabled {
+            let phonetic = PhoneticLibrary.phonetic(for: letter)
+            let word = PhoneticLibrary.exampleWord(for: letter)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                SpeechService.shared.speak("\(base)... \(phonetic)... \(word)")
+            }
+        } else {
+            SpeechService.shared.speak(base)
+        }
+    }
 
     private func clearCanvas() {
         withAnimation(.spring(response: 0.3)) { drawing = .empty }

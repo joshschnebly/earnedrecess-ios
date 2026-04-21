@@ -35,6 +35,11 @@ struct ParentSettingsView: View {
                 onSave: save
             )
 
+            CalibrationSettingsSection(
+                settings: settings,
+                onSave: save
+            )
+
             AccountSettingsSection(
                 child: child,
                 onSave: save,

@@ -58,6 +58,13 @@
         <attribute name="writeToWatchThreshold" attributeType="Double" defaultValueString="0.5" usesScalarValueType="YES"/>
         <attribute name="youtubeChannelWhitelist" attributeType="String" optional="YES"/>
         <attribute name="appMode" attributeType="String" defaultValueString="standard"/>
+        <attribute name="tracingArrowsEnabled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="tracingArrowsContinuous" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="tracingArrowsSequential" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="letterSoundsEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="wordAssociationEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="autoCalibrationEnabled" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="calibrationWindow" attributeType="Integer 32" defaultValueString="10" usesScalarValueType="YES"/>
     </entity>
     <entity name="RewardSession" representedClassName="RewardSession" codeGenerationType="none" syncable="YES">
         <attribute name="endTime" attributeType="Date" optional="YES" usesScalarValueType="NO"/>

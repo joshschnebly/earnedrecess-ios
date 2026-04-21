@@ -13,7 +13,7 @@ struct ParentTabView: View {
         TabView(selection: $selectedTab) {
             // Dashboard — Sessions 16 & 17
             NavigationStack {
-                DashboardView()
+                DashboardView(onGoToSettings: { selectedTab = .settings })
                     .navigationTitle("Dashboard")
                     .navigationBarTitleDisplayMode(.large)
             }

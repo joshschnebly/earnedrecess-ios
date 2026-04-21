@@ -8,6 +8,9 @@ struct DrawingCanvasView: UIViewRepresentable {
     var isEnabled: Bool = true
     var showAlignmentLines: Bool = false
     var templateStyle: String = "solid"
+    var tracingArrowsEnabled: Bool = false
+    var tracingArrowsContinuous: Bool = true
+    var tracingArrowsSequential: Bool = false
     var onStrokeAdded: (() -> Void)? = nil
 
     private var effectivePhase: Int {
@@ -93,6 +96,29 @@ struct DrawingCanvasView: UIViewRepresentable {
         }
 
         applyAlignmentLines(to: canvas)
+        applyTracingArrows(to: canvas)
+    }
+
+    private func applyTracingArrows(to canvas: PKCanvasView) {
+        canvas.subviews.filter { $0.tag == 997 }.forEach { $0.removeFromSuperview() }
+        guard tracingArrowsEnabled else { return }
+        let strokes = StrokePathLibrary.strokes(for: template.letter)
+        guard !strokes.isEmpty else { return }
+        let arrowsView = TracingArrowsView(
+            strokePaths: strokes,
+            canvasSize: canvas.bounds.size,
+            continuous: tracingArrowsContinuous,
+            sequential: tracingArrowsSequential
+        )
+        arrowsView.tag = 997
+        arrowsView.translatesAutoresizingMaskIntoConstraints = false
+        canvas.addSubview(arrowsView)
+        NSLayoutConstraint.activate([
+            arrowsView.leadingAnchor.constraint(equalTo: canvas.leadingAnchor),
+            arrowsView.trailingAnchor.constraint(equalTo: canvas.trailingAnchor),
+            arrowsView.topAnchor.constraint(equalTo: canvas.topAnchor),
+            arrowsView.bottomAnchor.constraint(equalTo: canvas.bottomAnchor),
+        ])
     }
 
     // MARK: - Coordinator
